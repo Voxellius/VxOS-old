@@ -28,5 +28,3 @@ else:
     import blinka_displayio_pygamedisplay
 
     display = blinka_displayio_pygamedisplay.PyGameDisplay(width = WIDTH, height = HEIGHT)
-
-print(vx.platform.IS_REAL_HARDWARE)
