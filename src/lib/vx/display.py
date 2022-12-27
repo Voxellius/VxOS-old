@@ -14,6 +14,12 @@ displayio.release_displays()
 WIDTH = 400
 HEIGHT = 240
 
+BLACK = 0x000000
+WHITE = 0xFFFFFF
+
+def invertColour(colour):
+    return 0xFFFFFF - colour
+
 if vx.platform.IS_REAL_HARDWARE:
     import busio
     import board
