@@ -13,3 +13,4 @@ convertFont() {
 }
 
 convertFont titilliumweb-regular 16
+convertFont titilliumweb-regular 64
