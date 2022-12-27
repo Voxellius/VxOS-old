@@ -1,4 +1,5 @@
 Adafruit-PlatformDetect==3.38.0
 blinka-displayio-pygamedisplay==1.0.0
 adafruit-circuitpython-display-text==2.22.12
+adafruit-circuitpython-bitmap-font==1.5.11
 recordclass==0.18.0.1

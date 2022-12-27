@@ -7,9 +7,22 @@
 
 import vx.display
 
-import terminalio
 from adafruit_display_text.label import Label
+from adafruit_bitmap_font import bitmap_font
+import time
 
-vx.display.display.show(Label(font = terminalio.FONT, text = "Hello, world!", x = 20, y = 20, scale = 4, color = 0xFFFFFF))
+font = bitmap_font.load_font("assets/titilliumweb-regular-16.bdf")
 
-while True: pass
+label = Label(font = font, text = "Hello, world!", x = 20, y = 20, scale = 1, color = 0x000000)
+
+vx.display.rootGroup.append(label)
+
+# vx.display.display.show(vx.display.rootGroup)
+
+while True:
+    label.y += 1
+
+    if label.y > 200:
+        label.y = 20
+
+    time.sleep(0.001)

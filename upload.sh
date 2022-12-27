@@ -1,3 +1,5 @@
+#!/bin/bash
+
 # VxOS
 # 
 # Copyright (C) Voxellius Systems. All Rights Reserved.
@@ -17,12 +19,12 @@ pushd src
             continue
         fi
 
-        if ! git diff --name-only | grep src/$file && [ "$2" != "--force" ] && [ "$file" != "$2" ]; then
+        if ! git add --dry-run . | cut -d \' -f2 | grep src/$file && [ "$2" != "--force" ] && [ "$file" != "$2" ]; then
             continue
         fi
 
         echo "Uploading: src/$file -> $1/$file"
-        mkdir -p $(dirname $file)
+        mkdir -p $(dirname $1/$file)
         cp $file $1/$file
     done
 popd

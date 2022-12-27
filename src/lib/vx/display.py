@@ -28,3 +28,15 @@ else:
     import blinka_displayio_pygamedisplay
 
     display = blinka_displayio_pygamedisplay.PyGameDisplay(width = WIDTH, height = HEIGHT)
+
+rootGroup = displayio.Group()
+
+backgroundColourShader = displayio.Palette(1)
+backgroundColourShader[0] = 0xFFFFFF
+
+backgroundBitmap = displayio.Bitmap(WIDTH, HEIGHT, 1)
+backgroundGrid = displayio.TileGrid(backgroundBitmap, pixel_shader = backgroundColourShader, x = 0, y = 0)
+
+rootGroup.append(backgroundGrid)
+
+display.show(rootGroup)
