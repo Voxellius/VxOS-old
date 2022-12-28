@@ -129,9 +129,10 @@ class Text(Element):
 
     @text.setter
     def text(self, value):
-        self._text = value
+        if value != self._text:
+            self._text = value
 
-        self.render()
+            self.render()
 
     @property
     def font(self):
