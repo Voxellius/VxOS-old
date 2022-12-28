@@ -6,14 +6,29 @@
 # https://voxellius.com
 
 import displayio
+from adafruit_bitmap_font import bitmap_font
 from adafruit_display_shapes.rect import Rect
+from adafruit_display_text.label import Label
 
 import vx.display
+
+class fonts:
+    SANS_REGULAR_16 = ("titilliumweb-regular-16", 1)
+    SANS_REGULAR_32 = ("titilliumweb-regular-16", 2)
+    SANS_REGULAR_64 = ("titilliumweb-regular-16", 4)
+    SANS_NUMERALS_64 = ("titilliumweb-numerals-64", 1)
+
+loadedFonts = {}
 
 class Element:
     def __init__(self, x, y):
         self._x = 0
         self._y = 0
+        self._computedX = 0
+        self._computedY = 0
+        self._visible = True
+        self._focusable = False
+        self._focused = False
 
         self.x = x
         self.y = y
@@ -43,12 +58,33 @@ class Element:
 
         self.render()
 
-    def render(self):
-        if self.parent == None:
-            return
+    @property
+    def visible(self):
+        return self._visible
 
-        self._computedX = self.parent._computedX + self._x
-        self._computedY = self.parent._computedY + self._y
+    @visible.setter
+    def visible(self, value):
+        self._visible = value
+
+        self.render()
+
+    @property
+    def focused(self):
+        return self._focused
+
+    def focus(self):
+        self._focused = True
+
+        self.render()
+
+    def render(self):
+        if self.parent != None:
+            self._computedX = self.parent._computedX + self._x
+            self._computedY = self.parent._computedY + self._y
+
+        self._get()
+
+        self._updateBuild()
 
     def _get(self, rebuild = False):
         if rebuild or self._cachedBuild == None:
@@ -57,13 +93,97 @@ class Element:
         return self._cachedBuild
 
     def _build(self):
-        return displayio.Group()
+        group = displayio.Group()
+
+        group.hidden = True
+
+        return group
 
     def _updateBuild(self):
-        pass
+        self._get().hidden = not self._visible
 
     def _addParent(self, parent):
         self.parent = parent
+
+class Text(Element):
+    def __init__(self, x, y, text, font = fonts.SANS_REGULAR_16):
+        self._cachedBuild = None
+
+        self.parent = None
+
+        self._text = text
+        self._font = font
+        self._foreground = vx.display.BLACK
+
+        super().__init__(x, y)
+
+    @property
+    def text(self):
+        return self._text
+
+    @text.setter
+    def text(self, value):
+        self._text = value
+
+        self.render()
+
+    @property
+    def font(self):
+        return self._font
+
+    @font.setter
+    def font(self, value):
+        self._font = value
+
+        self.render()
+
+    @property
+    def foreground(self):
+        return self._foreground
+
+    @foreground.setter
+    def foreground(self, value):
+        self._foreground = value
+
+        self.render()
+
+    @property
+    def width(self):
+        self.render()
+
+        return self._get().width
+
+    @property
+    def height(self):
+        self.render()
+
+        return self._get().height
+
+    def _build(self):
+        label = Label(
+            font = _getFont(self._font[0]),
+            text = self.text,
+            x = self._computedX,
+            y = self._computedY,
+            scale = self._font[1],
+            anchor_point = (0, 0),
+            color = self.foreground
+        )
+
+        label.hidden = True
+
+        return label
+
+    def _updateBuild(self):
+        label = self._get()
+
+        label.font = _getFont(self._font[0])
+        label.text = self.text
+        label.x = self._computedX
+        label.y = self._computedY
+        label.scale = self._font[1]
+        label.color = self.foreground
+        label.hidden = not self._visible
 
 class Container(Element):
     def __init__(self, x, y, width = None, height = None, xMargin = 0, yMargin = 0):
@@ -79,6 +199,8 @@ class Container(Element):
         self._computedY = 0
         self._computedWidth = 0
         self._computedHeight = 0
+        self._visible = True
+        self._focused = False
 
         self.width = width
         self.height = height
@@ -108,7 +230,6 @@ class Container(Element):
         self.render()
 
     def render(self):
-        print(self, self.parent)
         if self.parent != None:
             self._computedWidth = self.parent._width if self.width == None else self.width
             self._computedHeight = self.parent._height if self.height == None else self.height
@@ -163,7 +284,14 @@ class Container(Element):
         return self._get()
 
     def _build(self):
-        return displayio.Group()
+        group = displayio.Group()
+
+        group.hidden = True
+
+        return group
+
+    def _updateBuild(self):
+        self._get().hidden = not self._visible
 
     def _addParent(self, parent):
         super()._addParent(parent)
@@ -190,13 +318,13 @@ class Box(Container):
     def _build(self):
         group = displayio.Group()
 
+        group.hidden = True
+
         width = self._computedWidth
         height = self._computedHeight
 
         if not width: width = self.borderThickness
         if not height: height = self.borderThickness
-
-        print(width, height)
 
         self._rect = Rect(
             self._computedX,
@@ -217,27 +345,79 @@ class Box(Container):
         return group
 
     def _updateBuild(self):
+        self._get().hidden = not self._visible
+
         width = self._computedWidth
         height = self._computedHeight
 
         if not width: width = self.borderThickness
         if not height: height = self.borderThickness
 
-        del self._get()[0]
+        if (
+            self._computedWidth != self._rect.width or
+            self._computedHeight != self._rect.height
+        ):
+            del self._get()[0]
 
-        self._rect = Rect(
-            self._computedX,
-            self._computedY,
-            width,
-            height,
-            fill = self.background,
-            outline = self.border,
-            stroke = self.borderThickness
-        )
+            self._rect = Rect(
+                self._computedX,
+                self._computedY,
+                width,
+                height,
+                fill = self.background,
+                outline = self.border,
+                stroke = self.borderThickness
+            )
 
-        self._get().append(self._rect)
+            self._get().insert(0, self._rect)
+        else:
+            self._rect.x = self._computedX
+            self._rect.y = self._computedY
+            self._rect.fill = self.background
+            self._rect.outline = self.border
+            self._rect.stroke = self.borderThickness
 
-        print("new", self._computedX, self._computedY, width, height)
+class Button(Box):
+    def __init__(self, x, y, text, width = 100, height = 32, xMargin = 0, yMargin = 0):
+        self._text = text
+
+        self._textElement = Text(4, 12, text)
+        self._textElement.foreground = vx.display.BLACK
+
+        super().__init__(x, y, width, height, xMargin, yMargin)
+
+        self._focusable = True
+
+        self.add(self._textElement)
+
+    @property
+    def text(self):
+        return self._text
+
+    @text.setter
+    def text(self, value):
+        self._text = value
+
+        self.render()
+
+    def _updateBuild(self):
+        if self.focused:
+            self.background = vx.display.BLACK
+            self._textElement.foreground = vx.display.WHITE
+        else:
+            self.background = vx.display.WHITE
+            self._textElement.foreground = vx.display.BLACK
+
+        super()._updateBuild()
+
+        self._textElement.text = self.text
+        self._textElement.x = int((self._computedWidth - self._textElement.width) / 2)
+
+def _getFont(fontType):
+    if fontType not in loadedFonts:
+        loadedFonts[fontType] = bitmap_font.load_font("assets/%s.bdf" % (fontType))
+
+    return loadedFonts[fontType]
 
 rootContainer = Container(0, 0, vx.display.WIDTH, vx.display.HEIGHT)
 

@@ -5,27 +5,25 @@
 # 
 # https://voxellius.com
 
-import vx.display
 import vx.gui as gui
 
-from adafruit_display_text.label import Label
-from adafruit_bitmap_font import bitmap_font
 import time
-
-font = bitmap_font.load_font("assets/titilliumweb-numerals-64.bdf")
 
 box = gui.Box(0, 0, None, 20)
 
 gui.rootContainer.add(box)
 
-label = Label(font = font, text = "0123456789", x = 200, y = 120, scale = 1, color = 0x000000)
+button = gui.Button(20, 50, "Hi")
 
-vx.display.rootGroup.append(label)
+gui.rootContainer.add(button)
+
+clock = gui.Text(2, 160, "12:34", gui.fonts.SANS_NUMERALS_64)
+
+gui.rootContainer.add(clock)
+
+time.sleep(2)
+
+button.focus()
 
 while True:
-    label.x -= 1
-
-    if label.x < -400:
-        label.x = 400
-
     time.sleep(0.001)
