@@ -18,10 +18,10 @@ else:
     from adafruit_display_text.label import Label
 
 class fonts:
-    SANS_REGULAR_16 = ("titilliumweb-regular-16", 1)
-    SANS_REGULAR_32 = ("titilliumweb-regular-16", 2)
-    SANS_REGULAR_64 = ("titilliumweb-regular-16", 4)
-    SANS_NUMERALS_64 = ("titilliumweb-numerals-64", 1)
+    SANS_REGULAR_16 = ("titilliumweb-regular-16", 1, 20)
+    SANS_REGULAR_32 = ("titilliumweb-regular-16", 2, 40)
+    SANS_REGULAR_64 = ("titilliumweb-regular-16", 4, 80)
+    SANS_NUMERALS_64 = ("titilliumweb-numerals-64", 1, 80)
 
 loadedFonts = {}
 
@@ -422,6 +422,7 @@ class Button(Box):
 
         self._textElement.text = self.text
         self._textElement.x = int((self.computedWidth - self._textElement.computedWidth) / 2)
+        self._textElement.y = int((self.computedHeight - self._textElement.font[2]) / 2) + 6
 
 def _getFont(fontType):
     if fontType not in loadedFonts:

@@ -12,11 +12,14 @@ import vx.gui as gui
 import gc
 import time
 
-vx.display.display.auto_refresh = False
-
 box = gui.Box(0, 0, None, 20)
 
 gui.rootContainer.add(box)
+
+vx.display.display.refresh()
+vx.display.display.refresh()
+
+vx.display.display.auto_refresh = False
 
 button = gui.Button(20, 50, "Hello")
 
