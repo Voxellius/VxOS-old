@@ -8,9 +8,14 @@
 import displayio
 from adafruit_bitmap_font import bitmap_font
 from adafruit_display_shapes.rect import Rect
-from adafruit_display_text.label import Label
 
+import vx.platform
 import vx.display
+
+if vx.platform.IS_REAL_HARDWARE:
+    from adafruit_display_text.bitmap_label import Label
+else:
+    from adafruit_display_text.label import Label
 
 class fonts:
     SANS_REGULAR_16 = ("titilliumweb-regular-16", 1)
@@ -163,7 +168,7 @@ class Text(Element):
     def _build(self):
         label = Label(
             font = _getFont(self._font[0]),
-            text = self.text,
+            text = "",
             x = self.computedX,
             y = self.computedY,
             scale = self._font[1],
@@ -178,8 +183,10 @@ class Text(Element):
     def _updateBuild(self):
         label = self._get()
 
-        label.font = _getFont(self._font[0])
-        label.text = self.text
+        if label.font != _getFont(self._font[0]) or label.text != self.text:
+            label.font = _getFont(self._font[0])
+            label.text = self.text
+
         label.x = self.computedX
         label.y = self.computedY
         label.scale = self._font[1]
@@ -418,6 +425,8 @@ class Button(Box):
 def _getFont(fontType):
     if fontType not in loadedFonts:
         loadedFonts[fontType] = bitmap_font.load_font("assets/%s.bdf" % (fontType))
+
+        loadedFonts[fontType].load_glyphs(b"abcdefghjiklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890 ")
 
     return loadedFonts[fontType]
 
