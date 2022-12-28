@@ -24,11 +24,12 @@ class Element:
     def __init__(self, x, y):
         self._x = 0
         self._y = 0
-        self._computedX = 0
-        self._computedY = 0
         self._visible = True
         self._focusable = False
         self._focused = False
+
+        self.computedX = 0
+        self.computedY = 0
 
         self.x = x
         self.y = y
@@ -79,8 +80,8 @@ class Element:
 
     def render(self):
         if self.parent != None:
-            self._computedX = self.parent._computedX + self._x
-            self._computedY = self.parent._computedY + self._y
+            self.computedX = self.parent.computedX + self._x
+            self.computedY = self.parent.computedY + self._y
 
         self._get()
 
@@ -148,13 +149,13 @@ class Text(Element):
         self.render()
 
     @property
-    def width(self):
+    def computedWidth(self):
         self.render()
 
         return self._get().width
 
     @property
-    def height(self):
+    def computedHeight(self):
         self.render()
 
         return self._get().height
@@ -163,8 +164,8 @@ class Text(Element):
         label = Label(
             font = _getFont(self._font[0]),
             text = self.text,
-            x = self._computedX,
-            y = self._computedY,
+            x = self.computedX,
+            y = self.computedY,
             scale = self._font[1],
             anchor_point = (0, 0),
             color = self.foreground
@@ -179,8 +180,8 @@ class Text(Element):
 
         label.font = _getFont(self._font[0])
         label.text = self.text
-        label.x = self._computedX
-        label.y = self._computedY
+        label.x = self.computedX
+        label.y = self.computedY
         label.scale = self._font[1]
         label.color = self.foreground
         label.hidden = not self._visible
@@ -193,12 +194,13 @@ class Container(Element):
 
         self._children = []
 
+        self.computedX = 0
+        self.computedY = 0
+        self.computedWidth = 0
+        self.computedHeight = 0
+
         self._width = 0
         self._height = 0
-        self._computedX = 0
-        self._computedY = 0
-        self._computedWidth = 0
-        self._computedHeight = 0
         self._visible = True
         self._focused = False
 
@@ -231,16 +233,16 @@ class Container(Element):
 
     def render(self):
         if self.parent != None:
-            self._computedWidth = self.parent._width if self.width == None else self.width
-            self._computedHeight = self.parent._height if self.height == None else self.height
+            self.computedWidth = self.parent._width if self.width == None else self.width
+            self.computedHeight = self.parent._height if self.height == None else self.height
 
-            self._computedX = self.parent._computedX + self.x + self.xMargin
-            self._computedY = self.parent._computedY + self.y + self.yMargin
-            self._computedWidth -= 2 * self.xMargin
-            self._computedHeight -= 2 * self.yMargin
+            self.computedX = self.parent.computedX + self.x + self.xMargin
+            self.computedY = self.parent.computedY + self.y + self.yMargin
+            self.computedWidth -= 2 * self.xMargin
+            self.computedHeight -= 2 * self.yMargin
         else:
-            self._computedWidth = self.width
-            self._computedHeight = self.height
+            self.computedWidth = self.width
+            self.computedHeight = self.height
 
         self._get()
 
@@ -320,15 +322,15 @@ class Box(Container):
 
         group.hidden = True
 
-        width = self._computedWidth
-        height = self._computedHeight
+        width = self.computedWidth
+        height = self.computedHeight
 
         if not width: width = self.borderThickness
         if not height: height = self.borderThickness
 
         self._rect = Rect(
-            self._computedX,
-            self._computedY,
+            self.computedX,
+            self.computedY,
             width,
             height,
             fill = self.background,
@@ -347,21 +349,21 @@ class Box(Container):
     def _updateBuild(self):
         self._get().hidden = not self._visible
 
-        width = self._computedWidth
-        height = self._computedHeight
+        width = self.computedWidth
+        height = self.computedHeight
 
         if not width: width = self.borderThickness
         if not height: height = self.borderThickness
 
         if (
-            self._computedWidth != self._rect.width or
-            self._computedHeight != self._rect.height
+            self.computedWidth != self._rect.width or
+            self.computedHeight != self._rect.height
         ):
             del self._get()[0]
 
             self._rect = Rect(
-                self._computedX,
-                self._computedY,
+                self.computedX,
+                self.computedY,
                 width,
                 height,
                 fill = self.background,
@@ -371,8 +373,8 @@ class Box(Container):
 
             self._get().insert(0, self._rect)
         else:
-            self._rect.x = self._computedX
-            self._rect.y = self._computedY
+            self._rect.x = self.computedX
+            self._rect.y = self.computedY
             self._rect.fill = self.background
             self._rect.outline = self.border
             self._rect.stroke = self.borderThickness
@@ -411,7 +413,7 @@ class Button(Box):
         super()._updateBuild()
 
         self._textElement.text = self.text
-        self._textElement.x = int((self._computedWidth - self._textElement.width) / 2)
+        self._textElement.x = int((self.computedWidth - self._textElement.computedWidth) / 2)
 
 def _getFont(fontType):
     if fontType not in loadedFonts:
