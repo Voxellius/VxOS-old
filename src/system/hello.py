@@ -7,6 +7,7 @@
 
 import vx.platform
 import vx.display
+import vx.keyboard
 import vx.gui as gui
 
 import gc
@@ -54,7 +55,13 @@ while True:
     if vx.platform.IS_REAL_HARDWARE and i % 10 == 0:
         clock.text = str(gc.mem_free())
 
-    counter.text = str(i)
+    if vx.platform.IS_REAL_HARDWARE:
+        event = vx.keyboard.matrix.events.get()
+
+    if vx.platform.IS_REAL_HARDWARE and event:
+        counter.text = str(event)
+    else:
+        counter.text = "No events"
 
     vx.display.display.refresh()
     vx.display.display.refresh()
