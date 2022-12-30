@@ -61,15 +61,15 @@ while True:
     if vx.platform.IS_REAL_HARDWARE and i % 10 == 0:
         clock.text = str(gc.mem_free())
 
-    if vx.platform.IS_REAL_HARDWARE:
-        event = vx.keyboard.matrix.events.get()
+    keys = vx.keyboard.poll()
 
-        if event:
-            counter.text = str(event)
-        else:
-            counter.text = "No events (%.1f%% battery)" % (sensor.cell_percent)
+    if keys:
+        counter.text = str(keys)
     else:
-        counter.text = "No events"
+        if vx.platform.IS_REAL_HARDWARE:
+            counter.text = "No events (%.1f%% battery)" % (sensor.cell_percent)
+        else:
+            counter.text = "No events"
 
     vx.display.display.refresh()
     vx.display.display.refresh()

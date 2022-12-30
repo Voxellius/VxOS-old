@@ -32,8 +32,11 @@ if vx.platform.IS_REAL_HARDWARE:
     display = framebufferio.FramebufferDisplay(framebuffer) 
 else:
     import blinka_displayio_pygamedisplay
+    import pygame
 
     display = blinka_displayio_pygamedisplay.PyGameDisplay(width = WIDTH, height = HEIGHT)
+
+    pygame.display.set_caption("Voxellius VxOS Simulator")
 
 rootGroup = displayio.Group()
 
