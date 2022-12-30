@@ -13,6 +13,12 @@ import vx.gui as gui
 import gc
 import time
 
+if vx.platform.IS_REAL_HARDWARE:
+    import board
+    from adafruit_lc709203f import LC709203F
+
+    sensor = LC709203F(board.I2C())
+
 box = gui.Box(0, 0, None, 20)
 
 gui.rootContainer.add(box)
@@ -58,8 +64,10 @@ while True:
     if vx.platform.IS_REAL_HARDWARE:
         event = vx.keyboard.matrix.events.get()
 
-    if vx.platform.IS_REAL_HARDWARE and event:
-        counter.text = str(event)
+        if event:
+            counter.text = str(event)
+        else:
+            counter.text = "No events (%.1f%% battery)" % (sensor.cell_percent)
     else:
         counter.text = "No events"
 
