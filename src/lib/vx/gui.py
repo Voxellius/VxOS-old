@@ -75,6 +75,10 @@ class Element:
         self.render()
 
     @property
+    def focusable(self):
+        return self._focusable
+
+    @property
     def focused(self):
         return self._focused
 
@@ -424,6 +428,8 @@ class Button(Box):
         self._textElement.x = int((self.computedWidth - self._textElement.computedWidth) / 2)
         self._textElement.y = int((self.computedHeight - self._textElement.font[2]) / 2) + 6
 
+rootContainer = Container(0, 0, vx.display.WIDTH, vx.display.HEIGHT)
+
 def _getFont(fontType):
     if fontType not in loadedFonts:
         loadedFonts[fontType] = bitmap_font.load_font("assets/%s.bdf" % (fontType))
@@ -432,6 +438,19 @@ def _getFont(fontType):
 
     return loadedFonts[fontType]
 
-rootContainer = Container(0, 0, vx.display.WIDTH, vx.display.HEIGHT)
+def getElements(condition = lambda element: True, parentCondition = lambda element: element.visible, root = rootContainer):
+    if not isinstance(root, Container):
+        return []
+
+    elements = []
+
+    for element in root.children:
+        if condition(element):
+            elements.append(element)
+
+        if parentCondition(element):
+            elements += getElements(condition, parentCondition, element)
+
+    return elements
 
 vx.display.rootGroup.append(rootContainer._get())

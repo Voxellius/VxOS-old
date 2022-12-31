@@ -57,6 +57,8 @@ vx.display.display.auto_refresh = False
 
 button.focus()
 
+print(vx.gui.getElements(lambda element: element.focusable))
+
 while True:
     if vx.platform.IS_REAL_HARDWARE and i % 10 == 0:
         clock.text = str(gc.mem_free())
