@@ -27,8 +27,6 @@ async def init(initAppPath):
     i = 0
 
     while True:
-        gc.collect()
-
         vx.display.display.refresh()
         vx.display.display.refresh()
 
