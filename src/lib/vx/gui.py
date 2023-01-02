@@ -198,6 +198,49 @@ class Text(Element):
         label.color = self.foreground
         label.hidden = not self._visible
 
+class Image(Element):
+    def __init__(self, x, y, path):
+        self._cachedBuild = None
+
+        self.parent = None
+
+        self._path = path
+        self._bitmap = None
+
+        super().__init__(x, y)
+
+    @property
+    def path(self):
+        return self._path
+
+    @property
+    def computedWidth(self):
+        self.render()
+
+        return self._bitmap.width
+
+    @property
+    def computedHeight(self):
+        self.render()
+
+        return self._bitmap.height
+
+    def _build(self):
+        self._bitmap = displayio.OnDiskBitmap(self._path)
+
+        image = displayio.TileGrid(
+            bitmap = self._bitmap,
+            pixel_shader = displayio.ColorConverter(),
+            x = self.computedX,
+            y = self.computedY
+        )
+
+        return image
+
+    def _updateBuild(self):
+        self._get().x = self.computedX
+        self._get().y = self.computedY
+
 class Container(Element):
     def __init__(self, x, y, width = None, height = None, xMargin = 0, yMargin = 0):
         self._cachedBuild = None

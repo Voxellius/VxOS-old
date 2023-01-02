@@ -14,6 +14,19 @@ import vx.keyboard
 import vx.app
 import vx.gui as gui
 
+bootScreen = gui.Screen()
+
+bootImage = gui.Image(0, 0, "assets/boot.bmp")
+
+bootScreen.add(bootImage)
+
+bootImage.x = int((bootScreen.computedWidth - bootImage.computedWidth) / 2)
+bootImage.y = int((bootScreen.computedHeight - bootImage.computedHeight) / 2)
+
+gui.rootContainer.add(bootScreen)
+
+bootScreen.visible = True
+
 async def init(initAppPath):
     vx.gui._getFont("titilliumweb-regular-16")
     vx.gui._getFont("titilliumweb-numerals-64")
@@ -21,6 +34,8 @@ async def init(initAppPath):
     vx.platform.update()
 
     vx.display.display.auto_refresh = False
+
+    bootScreen.visible = False
 
     vx.app.startApp(initAppPath)
 
