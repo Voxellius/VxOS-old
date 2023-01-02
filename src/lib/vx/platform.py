@@ -21,6 +21,7 @@ def update():
 
 if IS_REAL_HARDWARE:
     import board
-    from adafruit_lc709203f import LC709203F
+    from adafruit_lc709203f import LC709203F, PackSize
 
     sensor = LC709203F(board.I2C())
+    sensor.pack_size = PackSize.MAH3000
