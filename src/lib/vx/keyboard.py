@@ -14,69 +14,89 @@ shiftHeld = False
 symbolHeld = False
 
 class Key:
-    def __init__(self, key, text = None):
-        self.key = key
-        self.text = text if text != None else key
+    def __init__(self, name, text = None):
+        self.name = name
+        self.text = text if text != None else name
 
     def __repr__(self):
         return "[%s]" % (self.text)
 
 class PrintingKey(Key):
-    def __init__(self, key, text = None):
-        super().__init__(key, text)
+    def __init__(self, name, text = None):
+        super().__init__(name, text)
 
 _K = Key
 _PK = PrintingKey
 
 _selectKey = Key("select")
+_ctrlKey = Key("ctrl")
+_shiftKey = Key("shift")
+_symbolKey = Key("symbol")
 
 KEYMAP_DEFAULT = [
-    _K("ctrl"), _PK("comma", ","), _K("left"), _K("up"), _K("down"), _K("right"), _PK("dot", "."), _K("home"),
+    _ctrlKey, _PK("comma", ","), _K("left"), _K("up"), _K("down"), _K("right"), _PK("dot", "."), _K("home"),
     _PK("w"), _PK("e"), _PK("r"), _PK("t"), _PK("y"), _PK("u"), _PK("i"), _PK("o"),
     _PK("s"), _PK("d"), _PK("f"), _PK("g"), _PK("h"), _PK("j"), _PK("k"), _PK("l"),
-    _PK("z"), _PK("x"), _PK("c"), _PK("v"), _PK("b"), _PK("n"), _PK("m"), _K("symbol"),
-    _K("back"), _PK("q"), _PK("a"), _K("shift"), _PK("space", " "), _K("backspace"), _PK("p"), _K("power"),
+    _PK("z"), _PK("x"), _PK("c"), _PK("v"), _PK("b"), _PK("n"), _PK("m"), _symbolKey,
+    _K("back"), _PK("q"), _PK("a"), _shiftKey, _PK("space", " "), _K("backspace"), _PK("p"), _K("power"),
     _selectKey
 ]
 
 KEYMAP_SHIFT = [
-    _K("ctrl"), _PK("apostrophe", "'"), _K("left"), _K("up"), _K("down"), _K("right"), _PK("exclamationMark", "!"), _K("home"),
+    _ctrlKey, _PK("apostrophe", "'"), _K("left"), _K("up"), _K("down"), _K("right"), _PK("exclamationMark", "!"), _K("home"),
     _PK("W"), _PK("E"), _PK("R"), _PK("T"), _PK("Y"), _PK("U"), _PK("I"), _PK("O"),
     _PK("S"), _PK("D"), _PK("F"), _PK("G"), _PK("H"), _PK("J"), _PK("K"), _PK("L"),
-    _PK("Z"), _PK("X"), _PK("C"), _PK("V"), _PK("B"), _PK("N"), _PK("M"), _K("symbol"),
-    _K("back"), _PK("Q"), _PK("A"), _K("shift"), _PK("space", " "), _K("backspace"), _PK("P"), _K("power"),
+    _PK("Z"), _PK("X"), _PK("C"), _PK("V"), _PK("B"), _PK("N"), _PK("M"), _symbolKey,
+    _K("back"), _PK("Q"), _PK("A"), _shiftKey, _PK("space", " "), _K("backspace"), _PK("P"), _K("power"),
     _selectKey
 ]
 
 KEYMAP_SYMBOL = [
     _K("auto2"), _K("auto3"), _K("left"), _K("up"), _K("down"), _K("right"), _K("emoji"), _K("help"),
     _PK("2"), _PK("3"), _PK("4"), _PK("5"), _PK("6"), _PK("7"), _PK("8"), _PK("9"),
-    _PK("colon", ":"), _PK("pound", "£"), _PK("dollar", "$"), _PK("percent", "%"), _PK("caret", "^"),
-    _PK("semicolon", ";"), _PK("at", "@"), _PK("hash", "#"), _PK("slash", "/"), _PK("dash", "-"),
-    _K("auto1"), _PK("1"), _PK("quotationMark", "\""), _PK("semicolon", ";"), _PK("equal", "="), _PK("questionMark", "?"), _K("symbol"), _K("enter"), _PK("ampersand", "&"), _PK("asterisk", "*"), _PK("leftBracket", "("), _PK("rightBracket", ")"), _PK("0"), _K("power"),
+    _PK("colon", ":"), _PK("pound", "£"), _PK("dollar", "$"), _PK("percent", "%"), _PK("caret", "^"), _PK("ampersand", "&"), _PK("asterisk", "*"), _PK("leftBracket", "("),
+    _PK("semicolon", ";"), _PK("at", "@"), _PK("hash", "#"), _PK("slash", "/"), _PK("dash", "-"), _PK("equal", "="), _PK("questionMark", "?"), _symbolKey,
+    _K("auto1"), _PK("1"), _PK("quotationMark", "\""), _shiftKey, _K("enter"), _PK("rightBracket", ")"), _PK("0"), _K("power"),
     _selectKey
 ]
 
 KEYMAP_SHIFT_SYMBOL = [
     _K("auto5"), _K("auto6"), _K("left"), _K("up"), _K("down"), _K("right"), _K("search"), _K("help"),
-    _PK("pi", "π"), _PK("pipe", "|"), _PK("registered", "®"), _PK("trademark", "™"), _PK("plusMinus", "±"), _PK("interpunct", "·"), _PK("emDash", "—"), _PK("leftBraceBracket", "{"),
+    _PK("pi", "π"), _PK("pipe", "|"), _PK("registered", "®"), _PK("trademark", "™"), _PK("plusMinus", "±"), _PK("interpunct", "·"), _PK("bullet", "•"), _PK("leftBraceBracket", "{"),
     _PK("cent", "¢"), _PK("yen", "¥"), _PK("euro", "€"), _PK("permille", "‰"), _PK("degree", "°"), _PK("divide", "÷"), _PK("multiply", "×"), _PK("leftSquareBracket", "["),
-    _PK("lessThan", "<"), _PK("greaterThan", ">"), _PK("copyright", "©"), _PK("backslash", "\\"), _PK("underscore", "_"), _PK("plus", "+"), _PK("tilde", "~"), _K("symbol"),
-    _K("auto4"), _PK("interrobang", "‽"), _PK("backtick", "`"), _K("shift"), _K("delete"), _PK("rightSquareBracket", "]"), _PK("rightBraceBracket", "}"), _K("power"),
+    _PK("lessThan", "<"), _PK("greaterThan", ">"), _PK("copyright", "©"), _PK("backslash", "\\"), _PK("underscore", "_"), _PK("plus", "+"), _PK("tilde", "~"), _symbolKey,
+    _K("auto4"), _PK("section", "§"), _PK("backtick", "`"), _shiftKey, _K("delete"), _PK("rightSquareBracket", "]"), _PK("rightBraceBracket", "}"), _K("power"),
     _selectKey
 ]
 
+def keyBeingHeld(keyName):
+    for key in heldKeys:
+        if key.name == keyName:
+            return True
+
+    return False
+
+def getKeymap():
+    if keyBeingHeld("shift") and keyBeingHeld("symbol"):
+        return KEYMAP_SHIFT_SYMBOL
+
+    if keyBeingHeld("symbol"):
+        return KEYMAP_SYMBOL
+
+    if keyBeingHeld("shift"):
+        return KEYMAP_SHIFT
+
+    return KEYMAP_DEFAULT
+
 def getKey(keyIndex):
-    if shiftHeld and symbolHeld:
-        return KEYMAP_SHIFT_SYMBOL[keyIndex]
+    return getKeymap()[keyIndex]
 
-    if symbolHeld:
-        return KEYMAP_SYMBOL[keyIndex]
+def cleanHeldKeys():
+    keyMap = getKeymap()
 
-    if shiftHeld:
-        return KEYMAP_SHIFT[keyIndex]
-
-    return KEYMAP_DEFAULT[keyIndex]
+    for key in heldKeys[:]:
+        if key != _selectKey and key not in keyMap:
+            heldKeys.remove(key)
 
 if vx.platform.IS_REAL_HARDWARE:
     import board
@@ -113,6 +133,8 @@ if vx.platform.IS_REAL_HARDWARE:
         if selectButton.value and _selectKey in heldKeys:
             heldKeys.remove(_selectKey)
 
+        cleanHeldKeys()
+
         return heldKeys
 else:
     import pygame
@@ -144,5 +166,7 @@ else:
 
             if pygamePressedKeys[i] == 0 and key in heldKeys:
                 heldKeys.remove(key)
+
+        cleanHeldKeys()
 
         return heldKeys
