@@ -18,13 +18,18 @@ class Process:
     async def run(self):
         pass
 
+async def defer():
+    await asyncio.sleep(0)
+
 def startProcess(processClass, arguments = {}):
     process = processClass(arguments)
     process.task = asyncio.create_task(process.run())
 
-    def endTask(task):
-        process.task = None
+    runningProcesses.append(process)
 
-    process.task.add_done_callback(endTask)
+    return process
 
-    runningProcesses.push(process)
+def startApp(path):
+    app = __import__(path, None, None, [None])
+
+    return startProcess(app.process)

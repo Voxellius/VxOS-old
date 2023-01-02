@@ -7,6 +7,20 @@
 
 import adafruit_platformdetect
 
-platformDetector = adafruit_platformdetect.Detector()
+_platformDetector = adafruit_platformdetect.Detector()
 
-IS_REAL_HARDWARE = not platformDetector.board.generic_linux
+IS_REAL_HARDWARE = not _platformDetector.board.generic_linux
+
+currentBatteryLevel = 0
+
+def update():
+    global currentBatteryLevel
+
+    if IS_REAL_HARDWARE:
+        currentBatteryLevel = sensor.cell_percent
+
+if IS_REAL_HARDWARE:
+    import board
+    from adafruit_lc709203f import LC709203F
+
+    sensor = LC709203F(board.I2C())

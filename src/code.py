@@ -7,6 +7,7 @@
 
 import os
 import sys
+import asyncio
 import adafruit_platformdetect
 
 platformDetector = adafruit_platformdetect.Detector()
@@ -20,4 +21,6 @@ else:
 
 print(sys.path)
 
-import hello
+import system.environment
+
+asyncio.run(system.environment.init("system.apps.hello"))

@@ -312,6 +312,12 @@ class Container(Element):
 
         self.resize()
 
+class Screen(Container):
+    def __init__(self):
+        super().__init__(0, 0, vx.display.WIDTH, vx.display.HEIGHT)
+
+        self.visible = False
+
 class Box(Container):
     def __init__(self, x, y, width = None, height = None, xMargin = 0, yMargin = 0):
         self.background = vx.display.WHITE
@@ -452,5 +458,14 @@ def getElements(condition = lambda element: True, parentCondition = lambda eleme
             elements += getElements(condition, parentCondition, element)
 
     return elements
+
+def getScreens():
+    return getElements(lambda element: isinstance(element, Screen))
+
+def switchToScreen(screen):
+    for otherScreen in getScreens():
+        otherScreen.visible = False
+
+    screen.visible = True
 
 vx.display.rootGroup.append(rootContainer._get())
