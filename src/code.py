@@ -19,6 +19,9 @@ else:
     sys.path.append("./lib")
     sys.path.append("./system")
 
+import vx.time
 import system.environment
+
+vx.time.setTime()
 
 asyncio.run(system.environment.init("system.apps.hello"))

@@ -8,6 +8,7 @@
 import vx.platform
 import vx.display
 import vx.keyboard
+import vx.time
 import vx.app
 import vx.gui as gui
 
@@ -33,9 +34,11 @@ class HelloProcess(vx.app.Process):
 
         await vx.app.defer()
 
-        clock = gui.Text(2, 160, "12:34", gui.fonts.SANS_NUMERALS_64)
+        clock = gui.Text(2, 160, "00:00:00", gui.fonts.SANS_NUMERALS_64)
+        date = gui.Text(10, 10, "--/--/----")
 
         screen.add(clock)
+        screen.add(date)
 
         await vx.app.defer()
 
@@ -55,10 +58,13 @@ class HelloProcess(vx.app.Process):
         while True:
             keys = vx.keyboard.poll()
 
+            clock.text = vx.time.getTimeString(vx.time.TimeFormat(False, True, True))
+            date.text = vx.time.getTimeString(vx.time.TimeFormat(True, False, False))
+
             if keys:
                 counter.text = str(keys)
             else:
-                counter.text = "(%d) No events (%.1f%% battery)" % (i, vx.platform.currentBatteryLevel)
+                counter.text = "No events (%.1f%% battery)" % (vx.platform.currentBatteryLevel)
 
             i += 1
 
