@@ -56,6 +56,7 @@ class HelloProcess(vx.app.Process):
         await vx.app.defer()
 
         while True:
+            events = vx.gui.getEvents()
             keys = vx.keyboard.poll()
 
             clock.text = vx.time.getTimeString(vx.time.TimeFormat(False, True, True))

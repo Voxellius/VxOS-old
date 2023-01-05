@@ -11,6 +11,7 @@ from adafruit_display_shapes.rect import Rect
 
 import vx.platform
 import vx.display
+import vx.keyboard
 
 if vx.platform.IS_REAL_HARDWARE:
     from adafruit_display_text.bitmap_label import Label
@@ -510,5 +511,11 @@ def switchToScreen(screen):
         otherScreen.visible = False
 
     screen.visible = True
+
+def getEvents():
+    vx.keyboard.poll()
+
+    # TODO: Return some sort of event object containing target element and event type/data
+    return []
 
 vx.display.rootGroup.append(rootContainer._get())
