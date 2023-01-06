@@ -60,12 +60,12 @@ class HelloProcess(vx.app.Process):
             keys = vx.keyboard.poll()
 
             clock.text = vx.time.getTimeString(vx.time.TimeFormat(False, True, True))
-            date.text = vx.time.getTimeString(vx.time.TimeFormat(True, False, False))
+            date.text = "%s (%.1f%% battery)" % (
+                vx.time.getTimeString(vx.time.TimeFormat(True, False, False)),
+                vx.platform.currentBatteryLevel
+            )
 
-            if keys:
-                counter.text = str(keys)
-            else:
-                counter.text = "No events (%.1f%% battery)" % (vx.platform.currentBatteryLevel)
+            counter.text = str(keys) if keys else "No events"
 
             i += 1
 
