@@ -155,16 +155,22 @@ else:
 
         pygamePressedKeys = pygame.key.get_pressed()
 
-        for i in range(0, len(pygamePressedKeys)):
-            if i not in keySimulationOrder:
+        print(len(pygamePressedKeys), pygame.K_DOWN)
+
+        for i in range(0, len(keySimulationOrder)):
+            j = keySimulationOrder[i]
+
+            if pygamePressedKeys[j] == 1: print(j)
+
+            if j not in keySimulationOrder:
                 continue
 
-            key = getKey(keySimulationOrder.index(i))
+            key = getKey(keySimulationOrder.index(j))
 
-            if pygamePressedKeys[i] == 1 and key not in heldKeys:
+            if pygamePressedKeys[j] == 1 and key not in heldKeys:
                 heldKeys.append(key)
 
-            if pygamePressedKeys[i] == 0 and key in heldKeys:
+            if pygamePressedKeys[j] == 0 and key in heldKeys:
                 heldKeys.remove(key)
 
         cleanHeldKeys()

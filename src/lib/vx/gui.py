@@ -26,6 +26,10 @@ class fonts:
 
 loadedFonts = {}
 
+class eventTypes:
+    UNKNOWN = 0
+    KEY_PRESS = 1
+
 class Element:
     def __init__(self, x, y):
         self._x = 0
@@ -477,6 +481,10 @@ class Button(Box):
         self._textElement.text = self.text
         self._textElement.x = int((self.computedWidth - self._textElement.computedWidth) / 2)
         self._textElement.y = int((self.computedHeight - self._textElement.font[2]) / 2) + 6
+
+class Event:
+    def __init__(self):
+        pass
 
 rootContainer = Container(0, 0, vx.display.WIDTH, vx.display.HEIGHT)
 
