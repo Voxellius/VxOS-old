@@ -39,6 +39,12 @@ class HelloProcess(vx.app.Process):
 
         await vx.app.defer()
 
+        button3 = gui.Button(260, 50, ":D", 50)
+
+        screen.add(button3)
+
+        await vx.app.defer()
+
         clock = gui.Text(2, 160, "00:00:00", gui.fonts.SANS_NUMERALS_64)
         date = gui.Text(10, 10, "--/--/----")
 

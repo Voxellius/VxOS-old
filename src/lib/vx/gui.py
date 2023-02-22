@@ -44,6 +44,8 @@ class Element:
         self.parent = None
         self._cachedBuild = None
 
+        self.on(KeyPressEvent, self._onKeyPress)
+
         self.render()
 
     @property
@@ -85,6 +87,11 @@ class Element:
         return self._focused
 
     def focus(self):
+        for element in getElements(lambda element: element.focused):
+            element._focused = False
+
+            element.render()
+
         self._focused = True
 
         self.render()
@@ -134,6 +141,21 @@ class Element:
 
         if event.shouldPropagate and self.parent != None:
             self.parent._triggerEvent(event)
+
+    def _onKeyPress(self, event):
+        if (event.key.name == "left" or event.key.name == "right") and self.focused:
+            focusOrder = getFocusOrder()
+            focusIndex = 0
+
+            for i in range(0, len(focusOrder)):
+                if focusOrder[i].focused:
+                    focusIndex = i
+
+            if event.key.name == "left":
+                focusOrder[focusIndex - 1].focus()
+
+            if event.key.name == "right":
+                focusOrder[(focusIndex + 1) % len(focusOrder)].focus()
 
 class Text(Element):
     def __init__(self, x, y, text, font = fonts.SANS_REGULAR_16):
@@ -550,6 +572,13 @@ def getElements(condition = lambda element: True, parentCondition = lambda eleme
             elements += getElements(condition, parentCondition, element)
 
     return elements
+
+def getFocusOrder():
+    focusableElements = getElements(lambda element: element.focusable)
+
+    focusableElements.sort(key = lambda element: (element.computedY * vx.display.WIDTH) + element.computedX)
+
+    return focusableElements
 
 def getScreens():
     return getElements(lambda element: isinstance(element, Screen))
