@@ -8,6 +8,8 @@
 import vx.platform
 
 heldKeys = []
+pressedKeys = []
+releasedKeys = []
 
 ctrlHeld = False
 shiftHeld = False
@@ -113,6 +115,11 @@ if vx.platform.IS_REAL_HARDWARE:
     selectButton.pull = digitalio.Pull.UP
 
     def poll():
+        global heldKeys, pressedKeys, releasedKeys
+
+        pressedKeys = []
+        releasedKeys = []
+
         while True:
             event = matrix.events.get()
 
@@ -123,15 +130,19 @@ if vx.platform.IS_REAL_HARDWARE:
 
             if event.pressed and key not in heldKeys:
                 heldKeys.append(key)
+                pressedKeys.append(key)
             
             if not event.pressed and key in heldKeys:
                 heldKeys.remove(key)
+                releasedKeys.append(key)
 
         if not selectButton.value and _selectKey not in heldKeys:
             heldKeys.append(_selectKey)
+            pressedKeys.append(_selectKey)
 
         if selectButton.value and _selectKey in heldKeys:
             heldKeys.remove(_selectKey)
+            releasedKeys.append(_selectKey)
 
         cleanHeldKeys()
 
@@ -151,14 +162,15 @@ else:
     ]
 
     def poll():
-        global heldKeys
+        global heldKeys, pressedKeys, releasedKeys
+
+        pressedKeys = []
+        releasedKeys = []
 
         pygamePressedKeys = pygame.key.get_pressed()
 
         for i in range(0, len(keySimulationOrder)):
             j = keySimulationOrder[i]
-
-            if pygamePressedKeys[j] == 1: print(j)
 
             if j not in keySimulationOrder:
                 continue
@@ -167,9 +179,11 @@ else:
 
             if pygamePressedKeys[j] == 1 and key not in heldKeys:
                 heldKeys.append(key)
+                pressedKeys.append(key)
 
             if pygamePressedKeys[j] == 0 and key in heldKeys:
                 heldKeys.remove(key)
+                releasedKeys.append(key)
 
         cleanHeldKeys()
 

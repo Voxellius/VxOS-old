@@ -26,6 +26,11 @@ class HelloProcess(vx.app.Process):
 
         screen.add(button)
 
+        def buttonKeyEvent(event):
+            button.text = event.key.name
+
+        button.on(gui.KeyPressEvent, buttonKeyEvent)
+
         await vx.app.defer()
 
         button2 = gui.Button(140, 50, "world")
@@ -56,8 +61,9 @@ class HelloProcess(vx.app.Process):
         await vx.app.defer()
 
         while True:
-            events = vx.gui.getEvents()
-            keys = vx.keyboard.poll()
+            vx.gui.updateEvents()
+
+            keys = vx.keyboard.heldKeys
 
             clock.text = vx.time.getTimeString(vx.time.TimeFormat(False, True, True))
             date.text = "%s (%.1f%% battery)" % (

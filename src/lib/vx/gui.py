@@ -26,10 +26,6 @@ class fonts:
 
 loadedFonts = {}
 
-class eventTypes:
-    UNKNOWN = 0
-    KEY_PRESS = 1
-
 class Element:
     def __init__(self, x, y):
         self._x = 0
@@ -37,6 +33,7 @@ class Element:
         self._visible = True
         self._focusable = False
         self._focused = False
+        self._eventListeners = []
 
         self.computedX = 0
         self.computedY = 0
@@ -101,6 +98,9 @@ class Element:
 
         self._updateBuild()
 
+    def on(self, eventType, callback):
+        self._eventListeners.append(EventListener(eventType, callback))
+
     def _get(self, rebuild = False):
         if rebuild or self._cachedBuild == None:
             self._cachedBuild = self._build()
@@ -119,6 +119,21 @@ class Element:
 
     def _addParent(self, parent):
         self.parent = parent
+
+    def _triggerEvent(self, event):
+        for eventListener in reversed(self._eventListeners):
+            if not event.shouldContinue:
+                break
+
+            if not isinstance(event, eventListener.eventType):
+                continue
+
+            eventListener.callback(event)
+
+        event.shouldContinue = True
+
+        if event.shouldPropagate and self.parent != None:
+            self.parent._triggerEvent(event)
 
 class Text(Element):
     def __init__(self, x, y, text, font = fonts.SANS_REGULAR_16):
@@ -483,8 +498,33 @@ class Button(Box):
         self._textElement.y = int((self.computedHeight - self._textElement.font[2]) / 2) + 6
 
 class Event:
-    def __init__(self):
-        pass
+    def __init__(self, target):
+        self.target = target
+        self.shouldContinue = True
+        self.shouldPropagate = True
+
+    def cancel(self):
+        self.shouldContinue = False
+
+    def cancelPropagation(self):
+        self.shouldPropagate = False
+
+class KeyboardEvent(Event):
+    def __init__(self, target, key = None):
+        self.key = key
+
+        super().__init__(target)
+
+class KeyPressEvent(KeyboardEvent):
+    pass
+
+class KeyReleaseEvent(KeyboardEvent):
+    pass
+
+class EventListener:
+    def __init__(self, eventType, callback):
+        self.eventType = eventType
+        self.callback = callback
 
 rootContainer = Container(0, 0, vx.display.WIDTH, vx.display.HEIGHT)
 
@@ -520,10 +560,18 @@ def switchToScreen(screen):
 
     screen.visible = True
 
-def getEvents():
+def updateEvents():
     vx.keyboard.poll()
 
-    # TODO: Return some sort of event object containing target element and event type/data
-    return []
+    focusedElements = getElements(lambda element: element.focused)
+
+    if len(focusedElements) > 0:
+        target = focusedElements[0]
+
+        for key in vx.keyboard.pressedKeys:
+            target._triggerEvent(KeyPressEvent(target, key))
+
+        for key in vx.keyboard.releasedKeys:
+            target._triggerEvent(KeyReleaseEvent(target, key))
 
 vx.display.rootGroup.append(rootContainer._get())
