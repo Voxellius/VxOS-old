@@ -155,8 +155,6 @@ else:
 
         pygamePressedKeys = pygame.key.get_pressed()
 
-        print(len(pygamePressedKeys), pygame.K_DOWN)
-
         for i in range(0, len(keySimulationOrder)):
             j = keySimulationOrder[i]
 
