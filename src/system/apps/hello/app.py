@@ -5,18 +5,20 @@
 # 
 # https://voxellius.com
 
+import vx.app
+import vx.gui as gui
 import vx.platform
 import vx.display
 import vx.keyboard
 import vx.time
-import vx.app
-import vx.gui as gui
 
 class HelloProcess(vx.app.Process):
     async def run(self):
+        vx.app.startApp("system/apps/statusbar")
+
         screen = vx.gui.Screen()
 
-        gui.rootContainer.add(screen)
+        gui.screenContainer.add(screen)
 
         gui.switchToScreen(screen)
 
@@ -45,15 +47,13 @@ class HelloProcess(vx.app.Process):
 
         await vx.app.defer()
 
-        clock = gui.Text(2, 160, "00:00:00", gui.fonts.SANS_NUMERALS_64)
-        date = gui.Text(10, 10, "--/--/----")
+        clock = gui.Text(2, 154, "00:00:00", gui.fonts.SANS_NUMERALS_64)
 
         screen.add(clock)
-        screen.add(date)
 
         await vx.app.defer()
 
-        counter = gui.Text(10, 220, "")
+        counter = gui.Text(10, 214, "")
         i = 0
 
         screen.add(counter)
@@ -71,12 +71,7 @@ class HelloProcess(vx.app.Process):
 
             keys = vx.keyboard.heldKeys
 
-            clock.text = vx.time.getTimeString(vx.time.TimeFormat(False, True, True))
-            date.text = "%s (%.1f%% battery)" % (
-                vx.time.getTimeString(vx.time.TimeFormat(True, False, False)),
-                vx.platform.currentBatteryLevel
-            )
-
+            clock.text = vx.time.getTimeString(vx.time.TimeFormat(vx.time.timeFormatModes.TIME | vx.time.timeFormatModes.TIME_SECONDS))
             counter.text = str(keys) if keys else "No events"
 
             i += 1

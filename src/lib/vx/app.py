@@ -13,6 +13,7 @@ class Process:
     def __init__(self, arguments):
         self.arguments = arguments
 
+        self.path = None
         self.task = None
 
     async def run(self):
@@ -30,6 +31,8 @@ def startProcess(processClass, arguments = {}):
     return process
 
 def startApp(path):
-    app = __import__(path, None, None, [None])
+    app = __import__(path.replace("/", ".") + ".app", None, None, [None])
+
+    app.process.path = path
 
     return startProcess(app.process)

@@ -19,11 +19,16 @@ datetime = _datetime
 _initialTimestamp = time.time()
 _timeOffset = 0
 
+class timeFormatModes:
+    DATE = 2 ** 0
+    TIME = 2 ** 1
+    TIME_SECONDS = 2 ** 2
+
 class TimeFormat:
-    def __init__(self, date, time, timeSeconds):
-        self.date = date
-        self.time = time
-        self.timeSeconds = timeSeconds
+    def __init__(self, modes):
+        self.date = (modes & timeFormatModes.DATE) == timeFormatModes.DATE
+        self.time = (modes & timeFormatModes.TIME) == timeFormatModes.TIME
+        self.timeSeconds = (modes & timeFormatModes.TIME_SECONDS) == timeFormatModes.TIME_SECONDS
 
 def now():
     return datetime.now() + timedelta(0, _timeOffset)
@@ -36,7 +41,7 @@ def setTime(dt = datetime(2023, 1, 1, 0, 0, 0)):
     
     _timeOffset = time.mktime(dt.timetuple()) - _initialTimestamp
 
-def getTimeString(format = TimeFormat(True, True, False), dt = None):
+def getTimeString(format = TimeFormat(timeFormatModes.DATE | timeFormatModes.TIME), dt = None):
     if dt == None:
         dt = now()
 

@@ -26,6 +26,11 @@ class fonts:
 
 loadedFonts = {}
 
+class alignments:
+    START = 0
+    MIDDLE = 1
+    END = 2
+
 class Element:
     def __init__(self, x, y):
         self._x = 0
@@ -107,6 +112,19 @@ class Element:
 
     def on(self, eventType, callback):
         self._eventListeners.append(EventListener(eventType, callback))
+
+    def align(self, xAlignment = alignments.MIDDLE, yAlignment = alignments.MIDDLE):
+        if xAlignment == alignments.MIDDLE:
+            self.x = int((self.parent.computedWidth - self.computedWidth) / 2)
+
+        if xAlignment == alignments.END:
+            self.x = self.parent.computedWidth - self.computedWidth - self.computedX
+
+        if yAlignment == alignments.MIDDLE:
+            self.y = int((self.parent.computedHeight - self.computedHeight) / 2)
+
+        if yAlignment == alignments.END:
+            self.y = self.parent.computedHeight - self.computedHeight - self.computedY
 
     def _get(self, rebuild = False):
         if rebuild or self._cachedBuild == None:
@@ -204,20 +222,20 @@ class Text(Element):
     def computedWidth(self):
         self.render()
 
-        return self._get().width
+        return self._get().bounding_box[0] + self._get().bounding_box[2]
 
     @property
     def computedHeight(self):
         self.render()
 
-        return self._get().height
+        return self._font[2]
 
     def _build(self):
         label = Label(
             font = _getFont(self._font[0]),
             text = "",
             x = self.computedX,
-            y = self.computedY,
+            y = self.computedY + 5,
             scale = self._font[1],
             anchor_point = (0, 0),
             color = self.foreground
@@ -235,7 +253,7 @@ class Text(Element):
             label.text = self.text
 
         label.x = self.computedX
-        label.y = self.computedY
+        label.y = self.computedY + 5
         label.scale = self._font[1]
         label.color = self.foreground
         label.hidden = not self._visible
@@ -517,7 +535,7 @@ class Button(Box):
 
         self._textElement.text = self.text
         self._textElement.x = int((self.computedWidth - self._textElement.computedWidth) / 2)
-        self._textElement.y = int((self.computedHeight - self._textElement.font[2]) / 2) + 6
+        self._textElement.y = int((self.computedHeight - self._textElement.computedHeight) / 2)
 
 class Event:
     def __init__(self, target):
@@ -549,6 +567,9 @@ class EventListener:
         self.callback = callback
 
 rootContainer = Container(0, 0, vx.display.WIDTH, vx.display.HEIGHT)
+screenContainer = Container(0, 0)
+
+rootContainer.add(screenContainer)
 
 def _getFont(fontType):
     if fontType not in loadedFonts:
