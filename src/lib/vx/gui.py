@@ -31,6 +31,12 @@ class alignments:
     MIDDLE = 1
     END = 2
 
+class sides:
+    ABOVE = 0
+    BELOW = 1
+    BEFORE = 2
+    AFTER = 3
+
 class Element:
     def __init__(self, x, y):
         self._x = 0
@@ -125,6 +131,19 @@ class Element:
 
         if yAlignment == alignments.END:
             self.y = self.parent.computedHeight - self.computedHeight - self.computedY
+
+    def place(self, element, side = sides.BELOW, gap = 0):
+        if side == sides.BEFORE:
+            self.x = element.computedX - gap - self.computedWidth
+
+        if side == sides.AFTER:
+            self.x = element.computedX + element.computedWidth + gap
+
+        if side == sides.ABOVE:
+            self.y = element.computedY - gap - self.computedHeight
+
+        if side == sides.BELOW:
+            self.y = element.computedY + element.computedHeight + gap
 
     def _get(self, rebuild = False):
         if rebuild or self._cachedBuild == None:

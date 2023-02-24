@@ -42,8 +42,13 @@ async def init(initAppPath):
     i = 0
 
     while True:
-        vx.display.display.refresh()
-        vx.display.display.refresh()
+        try:
+            vx.display.display.refresh()
+            vx.display.display.refresh()
+        except:
+            print("Too long without deferring")
+
+            raise NotImplementedError("No deferral error handling implemented yet")
 
         if i % 100 == 0:
             gc.collect()
