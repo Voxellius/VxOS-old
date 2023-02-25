@@ -21,7 +21,7 @@ class Key:
         self.text = text if text != None else name
 
     def __repr__(self):
-        return "[%s]" % (self.text)
+        return "[{}]".format(self.text)
 
 class PrintingKey(Key):
     def __init__(self, name, text = None):

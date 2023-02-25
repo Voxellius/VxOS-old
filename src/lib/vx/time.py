@@ -48,15 +48,15 @@ def getTimeString(format = TimeFormat(timeFormatModes.DATE | timeFormatModes.TIM
     fullString = ""
 
     if format.date:
-        fullString += "%02d/%02d/%d" % (dt.day, dt.month, dt.year)
+        fullString += "{:02d}/{:02d}/{}".format(dt.day, dt.month, dt.year)
 
         if format.time:
             fullString += " "
 
     if format.time:
-        fullString += "%02d:%02d" % (dt.hour, dt.minute)
+        fullString += "{:02d}:{:02d}".format(dt.hour, dt.minute)
 
         if format.timeSeconds:
-            fullString += ":%02d" % (dt.second)
+            fullString += ":{:02d}".format(dt.second)
 
     return fullString

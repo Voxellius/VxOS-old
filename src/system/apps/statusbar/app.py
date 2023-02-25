@@ -43,7 +43,7 @@ class StatusBarProcess(app.Process):
             if currentBatteryLevel != lastBatteryImageLevel:
                 container.remove(batteryImage)
 
-                batteryImage = gui.Image(0, 0, "assets/battery-%d.bmp" % (currentBatteryLevel))
+                batteryImage = gui.Image(0, 0, "assets/battery-{}.bmp".format(currentBatteryLevel))
 
                 container.add(batteryImage)
 

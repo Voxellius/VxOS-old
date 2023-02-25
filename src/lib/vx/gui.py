@@ -593,7 +593,7 @@ rootContainer.add(screenContainer)
 
 def _getFont(fontType):
     if fontType not in loadedFonts:
-        loadedFonts[fontType] = bitmap_font.load_font("assets/%s.bdf" % (fontType))
+        loadedFonts[fontType] = bitmap_font.load_font("assets/{}.bdf".format(fontType))
 
         loadedFonts[fontType].load_glyphs(b"abcdefghjiklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890 ")
 
