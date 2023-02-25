@@ -11,7 +11,13 @@ _platformDetector = adafruit_platformdetect.Detector()
 
 IS_REAL_HARDWARE = not _platformDetector.board.generic_linux
 
+class batteryStates:
+    UNKNOWN = 0
+    DISCHARGING = 1
+    CHARGING = 2
+
 currentBatteryLevel = 0
+currentBatteryState = batteryStates.UNKNOWN
 
 def update():
     global currentBatteryLevel

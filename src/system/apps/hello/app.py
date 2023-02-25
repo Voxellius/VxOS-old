@@ -72,7 +72,7 @@ class HelloProcess(vx.app.Process):
             keys = vx.keyboard.heldKeys
 
             clock.text = vx.time.getTimeString(vx.time.TimeFormat(vx.time.timeFormatModes.TIME | vx.time.timeFormatModes.TIME_SECONDS))
-            counter.text = str(keys) if keys else "No events"
+            counter.text = str(keys) if keys else "No keys held down"
 
             i += 1
 
