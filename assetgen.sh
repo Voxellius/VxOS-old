@@ -23,3 +23,14 @@ convertFont titilliumweb-regular 16
 convertFont titilliumweb-numerals 64
 
 convertImage boot
+convertImage battery-0
+convertImage battery-1
+convertImage battery-2
+convertImage battery-3
+convertImage battery-4
+convertImage battery-5
+convertImage battery-6
+convertImage battery-7
+convertImage battery-8
+convertImage battery-9
+convertImage battery-10

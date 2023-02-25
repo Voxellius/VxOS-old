@@ -16,11 +16,13 @@ class StatusBarProcess(app.Process):
 
         screenNameText = gui.Text(8, 0, "")
         timeText = gui.Text(0, 0, "")
-        batteryText = gui.Text(0, 0, "")
+        batteryImage = gui.Image(0, 0, "assets/battery-0.bmp")
+
+        lastBatteryImageLevel = None
 
         container.add(screenNameText)
         container.add(timeText)
-        container.add(batteryText)
+        container.add(batteryImage)
 
         await app.defer()
 
@@ -36,10 +38,19 @@ class StatusBarProcess(app.Process):
 
             timeText.align(gui.alignments.END, gui.alignments.MIDDLE)
 
-            batteryText.text = "%.1f%% battery" % (vx.platform.currentBatteryLevel)
+            currentBatteryLevel = round(vx.platform.currentBatteryLevel / 10)
 
-            batteryText.place(timeText, gui.sides.BEFORE, 8)
-            batteryText.align(gui.alignments.START, gui.alignments.MIDDLE)
+            if currentBatteryLevel != lastBatteryImageLevel:
+                container.remove(batteryImage)
+
+                batteryImage = gui.Image(0, 0, "assets/battery-%d.bmp" % (currentBatteryLevel))
+
+                container.add(batteryImage)
+
+                batteryImage.place(timeText, gui.sides.BEFORE, 8)
+                batteryImage.align(gui.alignments.START, gui.alignments.MIDDLE)
+
+                lastBatteryImageLevel = currentBatteryLevel
 
             await vx.app.defer()
 

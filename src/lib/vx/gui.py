@@ -411,6 +411,7 @@ class Container(Element):
 
     def remove(self, child):
         self._children.remove(child)
+        self._getChildGroup().remove(child._get())
 
         child.parent = None
 
