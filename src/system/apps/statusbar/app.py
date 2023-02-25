@@ -52,6 +52,8 @@ class StatusBarProcess(app.Process):
 
                 lastBatteryImageLevel = currentBatteryLevel
 
+            screenNameText.cut(batteryImage.x - 8 - screenNameText.x)
+
             await vx.app.defer()
 
 process = StatusBarProcess

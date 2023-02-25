@@ -249,6 +249,24 @@ class Text(Element):
 
         return self._font[2]
 
+    def cut(self, width = None):
+        if width == None:
+            width = self.parent.computedWidth - (2 * self.x)
+
+        cutText = self._text
+
+        while self.computedWidth > width and cutText != "":
+            cutText = cutText[:-1]
+
+            self._text = cutText + "..."
+
+            self.render()
+
+        if self.computedWidth > width:
+            self._text = ""
+
+            self.render()
+
     def _build(self):
         label = Label(
             font = _getFont(self._font[0]),

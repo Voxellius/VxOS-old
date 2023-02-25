@@ -275,7 +275,7 @@ class Chip:
         linux_id = None
         hardware = self.detector.get_cpuinfo_field("Hardware")
 
-        if hardware is None:
+        if hardware == None:
             vendor_id = self.detector.get_cpuinfo_field("vendor_id")
             if vendor_id == "AuthenticAMD":
                 model_name = self.detector.get_cpuinfo_field("model name").upper()
