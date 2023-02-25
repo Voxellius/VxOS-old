@@ -14,6 +14,8 @@ class StatusBarProcess(app.Process):
     async def run(self):
         container = gui.Box(-2, -2, vx.display.WIDTH + 4, 24 + 2)
 
+        gui.statusBar = container
+
         screenNameText = gui.Text(8, 0, "")
         timeText = gui.Text(0, 0, "")
         batteryImage = gui.Image(0, 0, "assets/battery-0.bmp")

@@ -251,7 +251,7 @@ class Text(Element):
 
     def cut(self, width = None):
         if width == None:
-            width = self.parent.computedWidth - (2 * self.x)
+            width = self.parent.computedWidth - (2 * self.xMargin)
 
         cutText = self._text
 
@@ -383,6 +383,28 @@ class Container(Element):
 
         self.render()
 
+    def shrinkWidth(self):
+        highestWidth = 0
+
+        for child in self.children:
+            width = child.y + child.computedWidth
+
+            if width > highestWidth:
+                highestWidth = width
+
+        self.width = highestWidth
+
+    def shrinkHeight(self):
+        highestHeight = 0
+
+        for child in self.children:
+            height = child.y + child.computedHeight
+
+            if height > highestHeight:
+                highestHeight = height
+
+        self.height = highestHeight
+
     def render(self):
         if self.parent != None:
             self.computedWidth = self.parent._width if self.width == None else self.width
@@ -458,6 +480,40 @@ class Screen(Container):
         super().__init__(0, 0, vx.display.WIDTH, vx.display.HEIGHT)
 
         self.visible = False
+        self.showStatusBar = True
+
+class ScrollableScreen(Screen):
+    def __init__(self):
+        self.contents = Container(0, 0)
+        self.horizontalScrollBar = HorizontalScrollBar(0, 0, 16, 16)
+        self.verticalScrollBar = VerticalScrollBar(0, 0, 16, 16)
+
+        super().__init__()
+
+        self.add(self.contents)
+        self.add(self.horizontalScrollBar)
+        self.add(self.verticalScrollBar)
+
+    def _updateBuild(self):
+        super()._updateBuild()
+
+        if self.parent != None:
+            self.horizontalScrollBar.y = self.computedHeight - 16
+            self.horizontalScrollBar.width = self.computedWidth
+            self.horizontalScrollBar.height = 16
+
+            self.horizontalScrollBar.scrollPosition = 0.5
+            self.horizontalScrollBar.viewportRatio = 0.3
+
+            self.verticalScrollBar.x = self.computedWidth - 16
+            self.verticalScrollBar.width = 16
+            self.verticalScrollBar.height = self.computedHeight
+
+            self.verticalScrollBar.scrollPosition = 0.5
+            self.verticalScrollBar.viewportRatio = 0.3
+
+        self.contents.shrinkWidth()
+        self.contents.shrinkHeight()
 
 class Box(Container):
     def __init__(self, x, y, width = None, height = None, xMargin = 0, yMargin = 0):
@@ -575,6 +631,64 @@ class Button(Box):
         self._textElement.x = int((self.computedWidth - self._textElement.computedWidth) / 2)
         self._textElement.y = int((self.computedHeight - self._textElement.computedHeight) / 2)
 
+class ScrollBar(Box):
+    def __init__(self, x, y, width = None, height = None, xMargin = 0, yMargin = 0):
+        self._indicatorElement = Box(0, 0, 16, 16, 2, 2)
+        self._indicatorElement.background = vx.display.BLACK
+        self._indicatorElement.borderThickness = 0
+
+        self._scrollPosition = 0
+        self._viewportRatio = 1
+
+        super().__init__(x, y, width, height, xMargin, yMargin)
+
+        self.background = vx.display.WHITE
+        self.borderThickness = 0
+
+        self.add(self._indicatorElement)
+
+    @property
+    def scrollPosition(self):
+        return self._scrollPosition
+
+    @scrollPosition.setter
+    def scrollPosition(self, value):
+        self._scrollPosition = value
+
+        self.render()
+
+    @property
+    def viewportRatio(self):
+        return self._viewportRatio
+
+    @viewportRatio.setter
+    def viewportRatio(self, value):
+        self._viewportRatio = value
+
+        self.render()
+
+class HorizontalScrollBar(ScrollBar):
+    def _updateBuild(self):
+        super()._updateBuild()
+
+        if self.parent != None:
+            fullWidth = self.computedWidth - (2 * self._indicatorElement.xMargin)
+            indicatorWidth = max(self.viewportRatio * fullWidth, 20)
+
+            self._indicatorElement.x = round((fullWidth - indicatorWidth) * self.scrollPosition)
+            self._indicatorElement.width = round(indicatorWidth)
+
+class VerticalScrollBar(ScrollBar):
+    def _updateBuild(self):
+        super()._updateBuild()
+
+        if self.parent != None:
+            fullHeight = self.computedHeight - (2 * self._indicatorElement.yMargin)
+            indicatorHeight = max(self.viewportRatio * fullHeight, 20)
+
+            self._indicatorElement.y = round((fullHeight - indicatorHeight) * self.scrollPosition)
+            self._indicatorElement.height = round(indicatorHeight)
+
 class Event:
     def __init__(self, target):
         self.target = target
@@ -606,6 +720,7 @@ class EventListener:
 
 rootContainer = Container(0, 0, vx.display.WIDTH, vx.display.HEIGHT)
 screenContainer = Container(0, 0)
+statusBar = None
 
 rootContainer.add(screenContainer)
 
@@ -645,6 +760,16 @@ def getScreens():
 def switchToScreen(screen):
     for otherScreen in getScreens():
         otherScreen.visible = False
+
+    if statusBar != None:
+        statusBar.visible = screen.showStatusBar
+
+    if screen.showStatusBar and statusBar != None:
+        screen.y = statusBar.y + statusBar.computedHeight
+    else:
+        screen.y = 0
+
+    screen.height = vx.display.HEIGHT - screen.y
 
     screen.visible = True
 

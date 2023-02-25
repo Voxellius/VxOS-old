@@ -16,7 +16,9 @@ class HelloProcess(vx.app.Process):
     async def run(self):
         vx.app.startApp("system/apps/statusbar")
 
-        screen = vx.gui.Screen()
+        await vx.app.defer()
+
+        screen = vx.gui.ScrollableScreen()
 
         gui.screenContainer.add(screen)
 
@@ -24,9 +26,9 @@ class HelloProcess(vx.app.Process):
 
         await vx.app.defer()
 
-        button = gui.Button(20, 50, "Hello")
+        button = gui.Button(20, 26, "Hello")
 
-        screen.add(button)
+        screen.contents.add(button)
 
         def buttonKeyEvent(event):
             button.text = event.key.name
@@ -35,28 +37,28 @@ class HelloProcess(vx.app.Process):
 
         await vx.app.defer()
 
-        button2 = gui.Button(140, 50, "world")
+        button2 = gui.Button(140, 26, "world")
 
-        screen.add(button2)
-
-        await vx.app.defer()
-
-        button3 = gui.Button(260, 50, ":D", 50)
-
-        screen.add(button3)
+        screen.contents.add(button2)
 
         await vx.app.defer()
 
-        clock = gui.Text(2, 154, "00:00:00", gui.fonts.SANS_NUMERALS_64)
+        button3 = gui.Button(260, 26, ":D", 50)
 
-        screen.add(clock)
+        screen.contents.add(button3)
 
         await vx.app.defer()
 
-        counter = gui.Text(10, 214, "")
+        clock = gui.Text(2, 114, "00:00:00", gui.fonts.SANS_NUMERALS_64)
+
+        screen.contents.add(clock)
+
+        await vx.app.defer()
+
+        counter = gui.Text(10, 174, "")
         i = 0
 
-        screen.add(counter)
+        screen.contents.add(counter)
 
         await vx.app.defer()
 
