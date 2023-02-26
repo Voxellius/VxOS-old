@@ -26,7 +26,7 @@ class HelloProcess(vx.app.Process):
 
         await vx.app.defer()
 
-        button = gui.Button(20, 26, "Hello")
+        button = gui.Button(16, 26, "Hello")
 
         screen.contents.add(button)
 
@@ -37,25 +37,27 @@ class HelloProcess(vx.app.Process):
 
         await vx.app.defer()
 
-        button2 = gui.Button(140, 26, "world")
+        button2 = gui.Button(16, 26, "world")
+
+        button2.place(button, gui.sides.AFTER, 8)
 
         screen.contents.add(button2)
 
         await vx.app.defer()
 
-        button3 = gui.Button(260, 26, ":D", 50)
+        button3 = gui.Button(260, 230, ":D", 48)
 
         screen.contents.add(button3)
 
         await vx.app.defer()
 
-        clock = gui.Text(2, 114, "00:00:00", gui.fonts.SANS_NUMERALS_64)
+        clock = gui.Text(16, 114, "00:00:00", gui.fonts.SANS_NUMERALS_64)
 
         screen.contents.add(clock)
 
         await vx.app.defer()
 
-        counter = gui.Text(10, 174, "")
+        counter = gui.Text(16, 180, "")
         i = 0
 
         screen.contents.add(counter)
@@ -68,13 +70,15 @@ class HelloProcess(vx.app.Process):
 
         await vx.app.defer()
 
+        screen.render()
+
         while True:
             vx.gui.updateEvents()
 
             keys = vx.keyboard.heldKeys
 
             clock.text = vx.time.getTimeString(vx.time.TimeFormat(vx.time.timeFormatModes.TIME | vx.time.timeFormatModes.TIME_SECONDS))
-            counter.text = str(keys) if keys else "No keys held down"
+            counter.text = str(keys) if keys else "No keys held down ({})".format(i)
 
             i += 1
 

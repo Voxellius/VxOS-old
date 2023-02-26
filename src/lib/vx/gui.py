@@ -55,7 +55,7 @@ class Element:
         self.parent = None
         self._cachedBuild = None
 
-        self.on(KeyPressEvent, self._onKeyPress)
+        self.on(KeyPressEvent, self._checkFocusMove)
 
         self.render()
 
@@ -106,6 +106,11 @@ class Element:
         self._focused = True
 
         self.render()
+
+        self._triggerEvent(FocusEvent(self))
+
+        if self.parent != None:
+            self.parent._triggerEvent(ChildFocusEvent(self))
 
     def render(self):
         if self.parent != None:
@@ -179,8 +184,8 @@ class Element:
         if event.shouldPropagate and self.parent != None:
             self.parent._triggerEvent(event)
 
-    def _onKeyPress(self, event):
-        if (event.key.name == "left" or event.key.name == "right") and self.focused:
+    def _checkFocusMove(self, event):
+        if event.isAnyKeys(["left", "right"]) and not event.hasKey("symbol") and self.focused:
             focusOrder = getFocusOrder()
             focusIndex = 0
 
@@ -188,10 +193,10 @@ class Element:
                 if focusOrder[i].focused:
                     focusIndex = i
 
-            if event.key.name == "left":
+            if event.isKey("left"):
                 focusOrder[focusIndex - 1].focus()
 
-            if event.key.name == "right":
+            if event.isKey("right"):
                 focusOrder[(focusIndex + 1) % len(focusOrder)].focus()
 
 class Text(Element):
@@ -383,18 +388,20 @@ class Container(Element):
 
         self.render()
 
-    def shrinkWidth(self):
+    @property
+    def contentsWidth(self):
         highestWidth = 0
 
         for child in self.children:
-            width = child.y + child.computedWidth
+            width = child.x + child.computedWidth
 
             if width > highestWidth:
                 highestWidth = width
 
-        self.width = highestWidth
+        return highestWidth
 
-    def shrinkHeight(self):
+    @property
+    def contentsHeight(self):
         highestHeight = 0
 
         for child in self.children:
@@ -403,7 +410,7 @@ class Container(Element):
             if height > highestHeight:
                 highestHeight = height
 
-        self.height = highestHeight
+        return highestHeight
 
     def render(self):
         if self.parent != None:
@@ -488,32 +495,144 @@ class ScrollableScreen(Screen):
         self.horizontalScrollBar = HorizontalScrollBar(0, 0, 16, 16)
         self.verticalScrollBar = VerticalScrollBar(0, 0, 16, 16)
 
+        self.scrollBarCorner = Box(0, 0, 16, 16)
+        self.scrollBarCorner.border = vx.display.WHITE
+
         super().__init__()
 
         self.add(self.contents)
         self.add(self.horizontalScrollBar)
         self.add(self.verticalScrollBar)
+        self.add(self.scrollBarCorner)
+
+        self.on(ChildFocusEvent, self._checkChildPosition)
+        self.on(KeyPressEvent, self._checkManualScroll)
+
+    @property
+    def scrollX(self):
+        return -self.contents.x
+
+    @scrollX.setter
+    def scrollX(self, value):
+        if value < 0:
+            value = 0
+
+        maxX = self.contents.contentsWidth - (self.computedWidth - self.verticalScrollBar.computedWidth)
+
+        if value > maxX:
+            value = max(maxX, 0)
+
+        self.contents.x = -value
+
+        self.render()
+
+    @property
+    def scrollY(self):
+        return -self.contents.y
+
+    @scrollY.setter
+    def scrollY(self, value):
+        if value < 0:
+            value = 0
+
+        maxY = self.contents.contentsHeight - (self.computedHeight - self.horizontalScrollBar.computedHeight)
+
+        if value > maxY:
+            value = max(maxY, 0)
+
+        self.contents.y = -value
+
+        self.render()
+
+    def scrollTo(self, element):
+        targetX = element.computedX - element.xMargin - self.contents.computedX
+        targetY = element.computedY - element.yMargin - self.contents.computedY
+
+        if self.scrollX + self.contents.computedWidth < targetX + element.computedWidth:
+            self.scrollX = targetX - self.contents.computedWidth + element.computedWidth
+        elif self.scrollX > targetX:
+            self.scrollX = targetX
+
+        if self.scrollY + self.contents.computedHeight < targetY + element.computedHeight:
+            self.scrollY = targetY - self.contents.computedHeight + element.computedHeight + self.horizontalScrollBar.computedHeight
+        elif self.scrollY > targetY:
+            self.scrollY = targetY
 
     def _updateBuild(self):
         super()._updateBuild()
 
         if self.parent != None:
-            self.horizontalScrollBar.y = self.computedHeight - 16
+            self.horizontalScrollBar.y = self.computedHeight - 12
             self.horizontalScrollBar.width = self.computedWidth
-            self.horizontalScrollBar.height = 16
+            self.horizontalScrollBar.height = 12
 
-            self.horizontalScrollBar.scrollPosition = 0.5
-            self.horizontalScrollBar.viewportRatio = 0.3
-
-            self.verticalScrollBar.x = self.computedWidth - 16
-            self.verticalScrollBar.width = 16
+            self.verticalScrollBar.x = self.computedWidth - 12
+            self.verticalScrollBar.width = 12
             self.verticalScrollBar.height = self.computedHeight
 
-            self.verticalScrollBar.scrollPosition = 0.5
-            self.verticalScrollBar.viewportRatio = 0.3
+            viewportWidth = self.computedWidth - self.verticalScrollBar.computedWidth
+            viewportHeight = self.computedHeight - self.horizontalScrollBar.computedHeight
 
-        self.contents.shrinkWidth()
-        self.contents.shrinkHeight()
+            self.contents.width = viewportWidth
+
+            contentsWidth = self.contents.contentsWidth
+            contentsHeight = self.contents.contentsHeight
+
+            self.scrollBarCorner.visible = False
+
+            if contentsWidth > viewportWidth:
+                self.horizontalScrollBar.scrollPosition = clamp(-self.contents.x / (contentsWidth - viewportWidth))
+                self.horizontalScrollBar.viewportRatio = clamp(viewportWidth / contentsWidth)
+                self.horizontalScrollBar.visible = True
+            else:
+                self.horizontalScrollBar.visible = False
+
+            if contentsHeight > viewportHeight:
+                self.verticalScrollBar.scrollPosition = clamp(-self.contents.y / (contentsHeight - viewportHeight))
+                self.verticalScrollBar.viewportRatio = clamp(viewportHeight / contentsHeight)
+                self.verticalScrollBar.visible = True
+
+                if self.horizontalScrollBar.visible:
+                    self.horizontalScrollBar.width = self.computedWidth - self.verticalScrollBar.computedWidth
+                    self.verticalScrollBar.height = self.computedHeight - self.horizontalScrollBar.computedHeight
+
+                    self.scrollBarCorner.x = self.computedWidth - self.verticalScrollBar.computedWidth
+                    self.scrollBarCorner.y = self.computedHeight - self.horizontalScrollBar.computedHeight
+
+                    self.scrollBarCorner.visible = True
+            else:
+                self.verticalScrollBar.visible = False
+
+    def _checkChildPosition(self, event):
+        self.scrollTo(event.target)
+
+    def _checkManualScroll(self, event):
+        print(event.allKeys, event.hasKey("symbol"))
+        if event.isAnyKeys(["up", "down", "left", "right"]) and event.hasKey("symbol"):
+            if event.hasKey("shift"):
+                if event.isKey("up"):
+                    self.scrollY = 0
+
+                if event.isKey("down"):
+                    self.scrollY = self.contents.computedHeight
+
+                if event.isKey("left"):
+                    self.scrollX = 0
+
+                if event.isKey("right"):
+                    self.scrollX = self.contents.computedWidth
+            else:
+                if event.isKey("up"):
+                    self.scrollY -= 16
+
+                if event.isKey("down"):
+                    self.scrollY += 16
+
+                if event.isKey("left"):
+                    self.scrollX -= 16
+
+                if event.isKey("right"):
+                    self.scrollX += 16
 
 class Box(Container):
     def __init__(self, x, y, width = None, height = None, xMargin = 0, yMargin = 0):
@@ -595,7 +714,7 @@ class Box(Container):
             self._rect.stroke = self.borderThickness
 
 class Button(Box):
-    def __init__(self, x, y, text, width = 100, height = 32, xMargin = 0, yMargin = 0):
+    def __init__(self, x, y, text, width = 128, height = 32, xMargin = 0, yMargin = 0):
         self._text = text
 
         self._textElement = Text(4, 12, text)
@@ -633,7 +752,7 @@ class Button(Box):
 
 class ScrollBar(Box):
     def __init__(self, x, y, width = None, height = None, xMargin = 0, yMargin = 0):
-        self._indicatorElement = Box(0, 0, 16, 16, 2, 2)
+        self._indicatorElement = Box(0, 0, 12, 12, 2, 2)
         self._indicatorElement.background = vx.display.BLACK
         self._indicatorElement.borderThickness = 0
 
@@ -672,8 +791,8 @@ class HorizontalScrollBar(ScrollBar):
         super()._updateBuild()
 
         if self.parent != None:
-            fullWidth = self.computedWidth - (2 * self._indicatorElement.xMargin)
-            indicatorWidth = max(self.viewportRatio * fullWidth, 20)
+            fullWidth = self.computedWidth - self._indicatorElement.xMargin
+            indicatorWidth = max(self.viewportRatio * fullWidth, 16)
 
             self._indicatorElement.x = round((fullWidth - indicatorWidth) * self.scrollPosition)
             self._indicatorElement.width = round(indicatorWidth)
@@ -683,8 +802,8 @@ class VerticalScrollBar(ScrollBar):
         super()._updateBuild()
 
         if self.parent != None:
-            fullHeight = self.computedHeight - (2 * self._indicatorElement.yMargin)
-            indicatorHeight = max(self.viewportRatio * fullHeight, 20)
+            fullHeight = self.computedHeight - self._indicatorElement.yMargin
+            indicatorHeight = max(self.viewportRatio * fullHeight, 16)
 
             self._indicatorElement.y = round((fullHeight - indicatorHeight) * self.scrollPosition)
             self._indicatorElement.height = round(indicatorHeight)
@@ -702,16 +821,39 @@ class Event:
         self.shouldPropagate = False
 
 class KeyboardEvent(Event):
-    def __init__(self, target, key = None):
+    def __init__(self, target, key = None, allKeys = None):
         self.key = key
+        self.allKeys = allKeys
 
         super().__init__(target)
 
-class KeyPressEvent(KeyboardEvent):
-    pass
+    def isKey(self, keyName):
+        return self.key.name == keyName
 
-class KeyReleaseEvent(KeyboardEvent):
-    pass
+    def isAnyKeys(self, keyNames):
+        for keyName in keyNames:
+            if keyName == self.key.name:
+                return True
+
+        return False
+
+    def hasKey(self, keyName):
+        for key in self.allKeys:
+            if key.name == keyName:
+                return True
+
+        return False
+
+class KeyPressEvent(KeyboardEvent): pass
+class KeyReleaseEvent(KeyboardEvent): pass
+
+class FocusEvent(Event):
+    def __init__(self, target):
+        super().__init__(target)
+
+        self.shouldPropagate = False
+
+class ChildFocusEvent(Event): pass
 
 class EventListener:
     def __init__(self, eventType, callback):
@@ -731,6 +873,9 @@ def _getFont(fontType):
         loadedFonts[fontType].load_glyphs(b"abcdefghjiklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890 ")
 
     return loadedFonts[fontType]
+
+def clamp(value, minValue = 0, maxValue = 1):
+    return min(max(value, minValue), maxValue)
 
 def getElements(condition = lambda element: True, parentCondition = lambda element: element.visible, root = rootContainer):
     if not isinstance(root, Container):
@@ -782,9 +927,9 @@ def updateEvents():
         target = focusedElements[0]
 
         for key in vx.keyboard.pressedKeys:
-            target._triggerEvent(KeyPressEvent(target, key))
+            target._triggerEvent(KeyPressEvent(target, key, vx.keyboard.heldKeys))
 
         for key in vx.keyboard.releasedKeys:
-            target._triggerEvent(KeyReleaseEvent(target, key))
+            target._triggerEvent(KeyReleaseEvent(target, key, vx.keyboard.heldKeys))
 
 vx.display.rootGroup.append(rootContainer._get())
