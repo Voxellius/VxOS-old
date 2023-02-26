@@ -20,6 +20,8 @@ class StatusBarProcess(app.Process):
         timeText = gui.Text(0, 0, "")
         batteryImage = gui.Image(0, 0, "assets/battery-0.bmp")
 
+        lastScreenName = None
+        lastTimeString = None
         lastBatteryImageLevel = None
 
         container.add(screenNameText)
@@ -31,30 +33,46 @@ class StatusBarProcess(app.Process):
         gui.rootContainer.add(container)
 
         while True:
-            screenNameText.text = "Hello, world!"
+            changesMade = False
 
-            screenNameText.align(gui.alignments.START, gui.alignments.MIDDLE)
+            screenName = "Hello, world!"
 
-            timeText.x = 8
-            timeText.text = vx.time.getTimeString(vx.time.TimeFormat(vx.time.timeFormatModes.TIME))
+            if screenName != lastScreenName:
+                screenNameText.text = screenName
 
-            timeText.align(gui.alignments.END, gui.alignments.MIDDLE)
+                screenNameText.align(gui.alignments.START, gui.alignments.MIDDLE)
 
-            currentBatteryLevel = round(vx.platform.currentBatteryLevel / 10)
+                lastScreenName = screenName
+                changesMade = True
 
-            if currentBatteryLevel != lastBatteryImageLevel:
+            timeString = vx.time.getTimeString(vx.time.TimeFormat(vx.time.timeFormatModes.TIME))
+
+            if timeString != lastTimeString:
+                timeText.x = 8
+                timeText.text = timeString
+
+                timeText.align(gui.alignments.END, gui.alignments.MIDDLE)
+
+                lastTimeString = timeString
+                changesMade = True
+
+            batteryLevel = round(vx.platform.currentBatteryLevel / 10)
+
+            if lastBatteryImageLevel != batteryLevel:
                 container.remove(batteryImage)
 
-                batteryImage = gui.Image(0, 0, "assets/battery-{}.bmp".format(currentBatteryLevel))
+                batteryImage = gui.Image(0, 0, "assets/battery-{}.bmp".format(batteryLevel))
 
                 container.add(batteryImage)
 
                 batteryImage.place(timeText, gui.sides.BEFORE, 8)
                 batteryImage.align(gui.alignments.START, gui.alignments.MIDDLE)
 
-                lastBatteryImageLevel = currentBatteryLevel
+                lastBatteryImageLevel = batteryLevel
+                changesMade = True
 
-            screenNameText.cut(batteryImage.x - 8 - screenNameText.x)
+            if changesMade:
+                screenNameText.cut(batteryImage.x - 8 - screenNameText.x)
 
             await vx.app.defer()
 

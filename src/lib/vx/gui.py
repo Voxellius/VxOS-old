@@ -185,19 +185,20 @@ class Element:
             self.parent._triggerEvent(event)
 
     def _checkFocusMove(self, event):
-        if event.isAnyKeys(["left", "right"]) and not event.hasKey("symbol") and self.focused:
-            focusOrder = getFocusOrder()
+        if event.isAnyKeys(["up", "down", "left", "right"]) and not event.hasKey("symbol") and self.focused:
+            focusOrder = getVerticalFocusOrder() if event.isAnyKeys(["up", "down"]) else getFocusOrder()
             focusIndex = 0
 
             for i in range(0, len(focusOrder)):
                 if focusOrder[i].focused:
                     focusIndex = i
 
-            if event.isKey("left"):
-                focusOrder[focusIndex - 1].focus()
+            if len(focusOrder) > 0:
+                if event.isKey("up") or event.isKey("left"):
+                    focusOrder[focusIndex - 1].focus()
 
-            if event.isKey("right"):
-                focusOrder[(focusIndex + 1) % len(focusOrder)].focus()
+                if event.isKey("down") or event.isKey("right"):
+                    focusOrder[(focusIndex + 1) % len(focusOrder)].focus()
 
 class Text(Element):
     def __init__(self, x, y, text, font = fonts.SANS_REGULAR_16):
@@ -607,7 +608,6 @@ class ScrollableScreen(Screen):
         self.scrollTo(event.target)
 
     def _checkManualScroll(self, event):
-        print(event.allKeys, event.hasKey("symbol"))
         if event.isAnyKeys(["up", "down", "left", "right"]) and event.hasKey("symbol"):
             if event.hasKey("shift"):
                 if event.isKey("up"):
@@ -898,6 +898,37 @@ def getFocusOrder():
     focusableElements.sort(key = lambda element: (element.computedY * vx.display.WIDTH) + element.computedX)
 
     return focusableElements
+
+def getVerticalFocusOrder():
+    focusedElements = getElements(lambda element: element.focused)
+    focusedElement = None
+
+    if len(focusedElements) > 0:
+        focusedElement = focusedElements[0]
+
+    focusableElements = getElements(lambda element: element.focusable)
+    verticalElements = []
+    focusX = 0
+
+    if focusedElement != None:
+        for element in focusableElements:
+            if element.computedX + element.computedWidth < focusedElement.computedX:
+                continue
+
+            if element.computedX > focusedElement.computedX + focusedElement.computedWidth:
+                continue
+
+            if element.computedY + element.computedHeight < focusedElement.computedY:
+                verticalElements.append(element)
+
+            if element.computedY > focusedElement.computedY + focusedElement.computedHeight:
+                verticalElements.append(element)
+    else:
+        verticalElements = focusableElements
+
+    verticalElements.sort(key = lambda element: element.computedY)
+
+    return verticalElements
 
 def getScreens():
     return getElements(lambda element: isinstance(element, Screen))
