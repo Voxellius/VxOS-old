@@ -57,4 +57,6 @@ async def init(initAppPath):
 
         i += 1
 
+        gui.updateEvents()
+
         await vx.app.defer()

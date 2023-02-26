@@ -14,14 +14,12 @@ import vx.time
 
 class HelloProcess(vx.app.Process):
     async def run(self):
-        vx.app.startApp("system/apps/statusbar")
-
         await vx.app.defer()
 
         screen = vx.gui.ScrollableScreen()
+        screen.name = "Hello, world!"
 
         gui.screenContainer.add(screen)
-
         gui.switchToScreen(screen)
 
         await vx.app.defer()
@@ -73,8 +71,6 @@ class HelloProcess(vx.app.Process):
         screen.render()
 
         while True:
-            vx.gui.updateEvents()
-
             keys = vx.keyboard.heldKeys
 
             clock.text = vx.time.getTimeString(vx.time.TimeFormat(vx.time.timeFormatModes.TIME | vx.time.timeFormatModes.TIME_SECONDS))

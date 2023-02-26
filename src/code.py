@@ -24,4 +24,4 @@ import system.environment
 
 vx.time.setTime()
 
-asyncio.run(system.environment.init("system/apps/hello"))
+asyncio.run(system.environment.init("system/apps/home"))

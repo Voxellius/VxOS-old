@@ -139,16 +139,16 @@ class Element:
 
     def place(self, element, side = sides.BELOW, gap = 0):
         if side == sides.BEFORE:
-            self.x = element.computedX - gap - self.computedWidth
+            self.x = element.computedX - element.parent.computedX - gap - self.computedWidth
 
         if side == sides.AFTER:
-            self.x = element.computedX + element.computedWidth + gap
+            self.x = element.computedX - element.parent.computedX + element.computedWidth + gap
 
         if side == sides.ABOVE:
-            self.y = element.computedY - gap - self.computedHeight
+            self.y = element.computedY - element.parent.computedY - gap - self.computedHeight
 
         if side == sides.BELOW:
-            self.y = element.computedY + element.computedHeight + gap
+            self.y = element.computedY - element.parent.computedY + element.computedHeight + gap
 
     def _get(self, rebuild = False):
         if rebuild or self._cachedBuild == None:
@@ -488,6 +488,7 @@ class Screen(Container):
         super().__init__(0, 0, vx.display.WIDTH, vx.display.HEIGHT)
 
         self.visible = False
+        self.name = ""
         self.showStatusBar = True
 
 class ScrollableScreen(Screen):
@@ -506,7 +507,6 @@ class ScrollableScreen(Screen):
         self.add(self.verticalScrollBar)
         self.add(self.scrollBarCorner)
 
-        self.on(ChildFocusEvent, self._checkChildPosition)
         self.on(KeyPressEvent, self._checkManualScroll)
 
     @property
@@ -559,6 +559,12 @@ class ScrollableScreen(Screen):
         elif self.scrollY > targetY:
             self.scrollY = targetY
 
+    def updateFocusPosition(self):
+        focusedElements = getElements(lambda element: element.focused)
+
+        if len(focusedElements) > 0:
+            self.scrollTo(focusedElements[0])
+
     def _updateBuild(self):
         super()._updateBuild()
 
@@ -603,9 +609,6 @@ class ScrollableScreen(Screen):
                     self.scrollBarCorner.visible = True
             else:
                 self.verticalScrollBar.visible = False
-
-    def _checkChildPosition(self, event):
-        self.scrollTo(event.target)
 
     def _checkManualScroll(self, event):
         if event.isAnyKeys(["up", "down", "left", "right"]) and event.hasKey("symbol"):
@@ -746,9 +749,10 @@ class Button(Box):
 
         super()._updateBuild()
 
-        self._textElement.text = self.text
-        self._textElement.x = int((self.computedWidth - self._textElement.computedWidth) / 2)
-        self._textElement.y = int((self.computedHeight - self._textElement.computedHeight) / 2)
+        if self.parent != None:
+            self._textElement.text = self.text
+            self._textElement.x = int((self.computedWidth - self._textElement.computedWidth) / 2)
+            self._textElement.y = int((self.computedHeight - self._textElement.computedHeight) / 2)
 
 class ScrollBar(Box):
     def __init__(self, x, y, width = None, height = None, xMargin = 0, yMargin = 0):
@@ -932,6 +936,13 @@ def getVerticalFocusOrder():
 
 def getScreens():
     return getElements(lambda element: isinstance(element, Screen))
+
+def getCurrentScreen():
+    for screen in getScreens():
+        if screen.visible:
+            return screen
+
+    return None
 
 def switchToScreen(screen):
     for otherScreen in getScreens():

@@ -35,7 +35,8 @@ class StatusBarProcess(app.Process):
         while True:
             changesMade = False
 
-            screenName = "Hello, world!"
+            currentScreen = gui.getCurrentScreen()
+            screenName = currentScreen.name if currentScreen != None else ""
 
             if screenName != lastScreenName:
                 screenNameText.text = screenName
