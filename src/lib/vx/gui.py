@@ -567,10 +567,9 @@ class ScrollableScreen(Screen):
         if value > maxX:
             value = max(maxX, 0)
 
-        self.contents._x = -value
-        self.contents._get().x = -value
+        self.contents.x = -value
 
-        # self._updateBuild()
+        self._updateBuild()
 
     @property
     def scrollY(self):
@@ -586,10 +585,9 @@ class ScrollableScreen(Screen):
         if value > maxY:
             value = max(maxY, 0)
 
-        self.contents._y = -value
-        self.contents._get().y = -value
+        self.contents.y = -value
 
-        # self._updateBuild()
+        self._updateBuild()
 
     def scrollTo(self, element):
         targetX = element.computedX - element.xMargin - self.contents.computedX
@@ -700,6 +698,7 @@ class Box(Container):
 
         self._rect = None
         self._childGroup = None
+        self._lastBorderThickness = 2
 
         super().__init__(x, y, width, height, xMargin, yMargin)
 
@@ -749,7 +748,8 @@ class Box(Container):
 
         if (
             self.computedWidth != self._rect.width or
-            self.computedHeight != self._rect.height
+            self.computedHeight != self._rect.height or
+            self.borderThickness != self._lastBorderThickness
         ):
             del self._get()[0]
 
@@ -764,6 +764,8 @@ class Box(Container):
             )
 
             self._get().insert(0, self._rect)
+
+            self._lastBorderThickness = self.borderThickness
         else:
             self._rect.fill = self.background
             self._rect.outline = self.border
@@ -771,7 +773,21 @@ class Box(Container):
 
         super()._updateBuild()
 
-class Button(Box):
+class FocusableBox(Box):
+    def __init__(self, x, y, width = 128, height = 32, xMargin = 0, yMargin = 0):
+        super().__init__(x, y, width, height, xMargin, yMargin)
+
+        self._focusable = True
+
+    def _updateBuild(self):
+        if self.focused:
+            self.background = vx.display.BLACK
+        else:
+            self.background = vx.display.WHITE
+
+        super()._updateBuild()
+
+class Button(FocusableBox):
     def __init__(self, x, y, text, width = 128, height = 32, xMargin = 0, yMargin = 0):
         self._text = text
 
@@ -780,10 +796,8 @@ class Button(Box):
 
         super().__init__(x, y, width, height, xMargin, yMargin)
 
-        self._focusable = True
-
         self.add(self._textElement)
-
+    
     @property
     def text(self):
         return self._text
@@ -795,14 +809,12 @@ class Button(Box):
         self.render()
 
     def _updateBuild(self):
+        super()._updateBuild()
+
         if self.focused:
-            self.background = vx.display.BLACK
             self._textElement.foreground = vx.display.WHITE
         else:
-            self.background = vx.display.WHITE
             self._textElement.foreground = vx.display.BLACK
-
-        super()._updateBuild()
 
         if self.parent != None:
             self._textElement.text = self.text
@@ -967,25 +979,22 @@ def getVerticalFocusOrder():
 
     focusableElements = getElements(lambda element: element.focusable)
     verticalElements = []
-    focusX = 0
 
     if focusedElement != None:
         for element in focusableElements:
-            if element.computedX + element.computedWidth < focusedElement.computedX:
+            if element.computedX + element.computedWidth <= focusedElement.computedX:
                 continue
 
-            if element.computedX > focusedElement.computedX + focusedElement.computedWidth:
+            if element.computedX >= focusedElement.computedX + focusedElement.computedWidth:
                 continue
 
-            if element.computedY + element.computedHeight < focusedElement.computedY:
-                verticalElements.append(element)
+            verticalElements.append(element)
 
-            if element.computedY > focusedElement.computedY + focusedElement.computedHeight:
-                verticalElements.append(element)
+        verticalElements.sort(key = lambda element: element.computedY + (element.computedX - focusedElement.computedX))
     else:
         verticalElements = focusableElements
 
-    verticalElements.sort(key = lambda element: element.computedY)
+        verticalElements.sort(key = lambda element: element.computedY)
 
     return verticalElements
 

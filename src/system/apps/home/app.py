@@ -74,6 +74,8 @@ class HomeProcess(app.Process):
                 64
             )
 
+            button.borderThickness = 0
+
             appGrid.add(button)
 
             await app.defer()
