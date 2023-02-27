@@ -46,8 +46,8 @@ class Element:
         self._focused = False
         self._eventListeners = []
 
-        self.computedX = 0
-        self.computedY = 0
+        self.containedX = 0
+        self.containedY = 0
 
         self.x = x
         self.y = y
@@ -67,7 +67,7 @@ class Element:
     def x(self, value):
         self._x = value
 
-        self.render()
+        self.render(False)
 
     @property
     def y(self):
@@ -77,7 +77,21 @@ class Element:
     def y(self, value):
         self._y = value
 
-        self.render()
+        self.render(False)
+
+    @property
+    def computedX(self):
+        if self.parent == None:
+            return self.containedX
+
+        return self.parent.computedX + self.containedX
+
+    @property
+    def computedY(self):
+        if self.parent == None:
+            return self.containedY
+
+        return self.parent.computedY + self.containedY
 
     @property
     def visible(self):
@@ -112,10 +126,10 @@ class Element:
         if self.parent != None:
             self.parent._triggerEvent(ChildFocusEvent(self))
 
-    def render(self):
+    def render(self, renderChildren = True):
         if self.parent != None:
-            self.computedX = self.parent.computedX + self._x
-            self.computedY = self.parent.computedY + self._y
+            self.containedX = self._x
+            self.containedY = self._y
 
         self._get()
 
@@ -277,8 +291,8 @@ class Text(Element):
         label = Label(
             font = _getFont(self._font[0]),
             text = "",
-            x = self.computedX,
-            y = self.computedY + 5,
+            x = self.containedX,
+            y = self.containedY + 5,
             scale = self._font[1],
             anchor_point = (0, 0),
             color = self.foreground
@@ -295,8 +309,8 @@ class Text(Element):
             label.font = _getFont(self._font[0])
             label.text = self.text
 
-        label.x = self.computedX
-        label.y = self.computedY + 5
+        label.x = self.containedX
+        label.y = self.containedY + 5
         label.scale = self._font[1]
         label.color = self.foreground
         label.hidden = not self._visible
@@ -341,8 +355,8 @@ class Image(Element):
         return image
 
     def _updateBuild(self):
-        self._get().x = self.computedX
-        self._get().y = self.computedY
+        self._get().x = self.containedX
+        self._get().y = self.containedY
 
 class Container(Element):
     def __init__(self, x, y, width = None, height = None, xMargin = 0, yMargin = 0):
@@ -352,22 +366,20 @@ class Container(Element):
 
         self._children = []
 
-        self.computedX = 0
-        self.computedY = 0
-        self.computedWidth = 0
-        self.computedHeight = 0
+        self.containedX = 0
+        self.containedY = 0
 
         self._width = 0
         self._height = 0
         self._visible = True
         self._focused = False
 
+        super().__init__(x, y)
+
         self.width = width
         self.height = height
         self.xMargin = xMargin
         self.yMargin = yMargin
-
-        super().__init__(x, y)
 
     @property
     def width(self):
@@ -388,6 +400,20 @@ class Container(Element):
         self._height = value
 
         self.render()
+
+    @property
+    def computedWidth(self):
+        if self.parent == None:
+            return self.width
+
+        return (self.parent._width if self.width == None else self.width) - (2 * self.xMargin)
+
+    @property
+    def computedHeight(self):
+        if self.parent == None:
+            return self.height
+
+        return (self.parent._height if self.height == None else self.height) - (2 * self.yMargin)
 
     @property
     def contentsWidth(self):
@@ -413,25 +439,18 @@ class Container(Element):
 
         return highestHeight
 
-    def render(self):
+    def render(self, renderChildren = True):
         if self.parent != None:
-            self.computedWidth = self.parent._width if self.width == None else self.width
-            self.computedHeight = self.parent._height if self.height == None else self.height
-
-            self.computedX = self.parent.computedX + self.x + self.xMargin
-            self.computedY = self.parent.computedY + self.y + self.yMargin
-            self.computedWidth -= 2 * self.xMargin
-            self.computedHeight -= 2 * self.yMargin
-        else:
-            self.computedWidth = self.width
-            self.computedHeight = self.height
+            self.containedX = self.x + self.xMargin
+            self.containedY = self.y + self.yMargin
 
         self._get()
 
         self._updateBuild()
 
-        for child in self.children:
-            child.render()
+        if renderChildren:
+            for child in self.children:
+                child.render()
 
     @property
     def children(self):
@@ -477,6 +496,8 @@ class Container(Element):
 
     def _updateBuild(self):
         self._get().hidden = not self._visible
+        self._get().x = self.containedX
+        self._get().y = self.containedY
 
     def _addParent(self, parent):
         super()._addParent(parent)
@@ -500,6 +521,8 @@ class ScrollableScreen(Screen):
         self.scrollBarCorner = Box(0, 0, 16, 16)
         self.scrollBarCorner.border = vx.display.WHITE
 
+        self._shouldUpdateFocusPosition = False
+
         super().__init__()
 
         self.add(self.contents)
@@ -508,6 +531,7 @@ class ScrollableScreen(Screen):
         self.add(self.scrollBarCorner)
 
         self.on(KeyPressEvent, self._checkManualScroll)
+        self.on(ChildFocusEvent, self._checkAutoScroll)
 
     @property
     def scrollX(self):
@@ -525,7 +549,7 @@ class ScrollableScreen(Screen):
 
         self.contents.x = -value
 
-        self.render()
+        self._updateBuild()
 
     @property
     def scrollY(self):
@@ -543,7 +567,7 @@ class ScrollableScreen(Screen):
 
         self.contents.y = -value
 
-        self.render()
+        self._updateBuild()
 
     def scrollTo(self, element):
         targetX = element.computedX - element.xMargin - self.contents.computedX
@@ -560,10 +584,15 @@ class ScrollableScreen(Screen):
             self.scrollY = targetY
 
     def updateFocusPosition(self):
+        if not self._shouldUpdateFocusPosition:
+            return
+
         focusedElements = getElements(lambda element: element.focused)
 
         if len(focusedElements) > 0:
             self.scrollTo(focusedElements[0])
+
+        self._shouldUpdateFocusPosition = False
 
     def _updateBuild(self):
         super()._updateBuild()
@@ -637,6 +666,9 @@ class ScrollableScreen(Screen):
                 if event.isKey("right"):
                     self.scrollX += 16
 
+    def _checkAutoScroll(self, event):
+        self._shouldUpdateFocusPosition = True
+
 class Box(Container):
     def __init__(self, x, y, width = None, height = None, xMargin = 0, yMargin = 0):
         self.background = vx.display.WHITE
@@ -666,8 +698,8 @@ class Box(Container):
         if not height: height = self.borderThickness
 
         self._rect = Rect(
-            self.computedX,
-            self.computedY,
+            0,
+            0,
             width,
             height,
             fill = self.background,
@@ -699,8 +731,8 @@ class Box(Container):
             del self._get()[0]
 
             self._rect = Rect(
-                self.computedX,
-                self.computedY,
+                0,
+                0,
                 width,
                 height,
                 fill = self.background,
@@ -710,11 +742,11 @@ class Box(Container):
 
             self._get().insert(0, self._rect)
         else:
-            self._rect.x = self.computedX
-            self._rect.y = self.computedY
             self._rect.fill = self.background
             self._rect.outline = self.border
             self._rect.stroke = self.borderThickness
+
+        super()._updateBuild()
 
 class Button(Box):
     def __init__(self, x, y, text, width = 128, height = 32, xMargin = 0, yMargin = 0):
