@@ -18,7 +18,7 @@ class StatusBarProcess(app.Process):
 
         screenNameText = gui.Text(8, 0, "")
         timeText = gui.Text(0, 0, "")
-        batteryImage = gui.Image(0, 0, "assets/battery-0.bmp")
+        batteryImage = gui.Image(0, 0, "assets/battery-0.bmp")#
 
         lastScreenName = None
         lastTimeString = None

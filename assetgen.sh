@@ -17,12 +17,17 @@ convertImage() {
     convert assets/$1.png -depth 1 src/assets/$1.bmp
 }
 
+convertImageSmall() {
+    mkdir -p src/assets
+    convert assets/$1.png -dither none -colors 2 -remap assets/palette.png -compress none -type palette BMP3:src/assets/$1.bmp
+}
+
 pyftsubset assets/titilliumweb-regular.otf --output-file=assets/titilliumweb-numerals.otf --unicodes=U+0030-003A
 
 convertFont titilliumweb-regular 16
 convertFont titilliumweb-numerals 64
 
-convertImage boot
+convertImageSmall boot
 convertImage battery-0
 convertImage battery-1
 convertImage battery-2

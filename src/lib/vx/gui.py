@@ -363,7 +363,7 @@ class Image(Element):
 
         image = displayio.TileGrid(
             bitmap = self._bitmap,
-            pixel_shader = displayio.ColorConverter(),
+            pixel_shader = self._bitmap.pixel_shader,
             x = self.computedX,
             y = self.computedY
         )
