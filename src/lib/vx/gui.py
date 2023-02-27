@@ -37,6 +37,9 @@ class sides:
     BEFORE = 2
     AFTER = 3
 
+def _updateBuildProfiler(element):
+    pass # print(element)
+
 class Element:
     def __init__(self, x, y):
         self._x = 0
@@ -178,6 +181,8 @@ class Element:
         return group
 
     def _updateBuild(self):
+        _updateBuildProfiler(self)
+
         self._get().hidden = not self._visible
 
     def _addParent(self, parent):
@@ -217,6 +222,7 @@ class Element:
 class Text(Element):
     def __init__(self, x, y, text, font = fonts.SANS_REGULAR_16):
         self._cachedBuild = None
+        self._boundingBoxValid = False
 
         self.parent = None
 
@@ -234,6 +240,7 @@ class Text(Element):
     def text(self, value):
         if value != self._text:
             self._text = value
+            self._boundingBoxValid = False
 
             self.render()
 
@@ -244,6 +251,7 @@ class Text(Element):
     @font.setter
     def font(self, value):
         self._font = value
+        self._boundingBoxValid = False
 
         self.render()
 
@@ -259,13 +267,19 @@ class Text(Element):
 
     @property
     def computedWidth(self):
-        self.render()
+        if not self._boundingBoxValid:
+            self.render()
+
+            self._boundingBoxValid = True
 
         return self._get().bounding_box[0] + self._get().bounding_box[2]
 
     @property
     def computedHeight(self):
-        self.render()
+        if not self._boundingBoxValid:
+            self.render()
+
+            self._boundingBoxValid = True
 
         return self._font[2]
 
@@ -303,6 +317,8 @@ class Text(Element):
         return label
 
     def _updateBuild(self):
+        _updateBuildProfiler(self)
+
         label = self._get()
 
         if label.font != _getFont(self._font[0]) or label.text != self.text:
@@ -355,6 +371,8 @@ class Image(Element):
         return image
 
     def _updateBuild(self):
+        _updateBuildProfiler(self)
+
         self._get().x = self.containedX
         self._get().y = self.containedY
 
@@ -495,6 +513,8 @@ class Container(Element):
         return group
 
     def _updateBuild(self):
+        _updateBuildProfiler(self)
+
         self._get().hidden = not self._visible
         self._get().x = self.containedX
         self._get().y = self.containedY
@@ -515,10 +535,10 @@ class Screen(Container):
 class ScrollableScreen(Screen):
     def __init__(self):
         self.contents = Container(0, 0)
-        self.horizontalScrollBar = HorizontalScrollBar(0, 0, 16, 16)
-        self.verticalScrollBar = VerticalScrollBar(0, 0, 16, 16)
+        self.horizontalScrollBar = HorizontalScrollBar(0, 0, 12, 12)
+        self.verticalScrollBar = VerticalScrollBar(0, 0, 12, 12)
 
-        self.scrollBarCorner = Box(0, 0, 16, 16)
+        self.scrollBarCorner = Box(0, 0, 12, 12)
         self.scrollBarCorner.border = vx.display.WHITE
 
         self._shouldUpdateFocusPosition = False
@@ -547,9 +567,10 @@ class ScrollableScreen(Screen):
         if value > maxX:
             value = max(maxX, 0)
 
-        self.contents.x = -value
+        self.contents._x = -value
+        self.contents._get().x = -value
 
-        self._updateBuild()
+        # self._updateBuild()
 
     @property
     def scrollY(self):
@@ -565,9 +586,10 @@ class ScrollableScreen(Screen):
         if value > maxY:
             value = max(maxY, 0)
 
-        self.contents.y = -value
+        self.contents._y = -value
+        self.contents._get().y = -value
 
-        self._updateBuild()
+        # self._updateBuild()
 
     def scrollTo(self, element):
         targetX = element.computedX - element.xMargin - self.contents.computedX
@@ -609,7 +631,8 @@ class ScrollableScreen(Screen):
             viewportWidth = self.computedWidth - self.verticalScrollBar.computedWidth
             viewportHeight = self.computedHeight - self.horizontalScrollBar.computedHeight
 
-            self.contents.width = viewportWidth
+            if self.contents.width != viewportWidth:
+                self.contents.width = viewportWidth
 
             contentsWidth = self.contents.contentsWidth
             contentsHeight = self.contents.contentsHeight
