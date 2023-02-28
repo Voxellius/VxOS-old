@@ -827,7 +827,7 @@ class Button(FocusableBox):
 
     @text.setter
     def text(self, value):
-        self._text = value
+        self._text = str(value)
 
         self.render()
 

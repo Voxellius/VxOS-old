@@ -18,15 +18,19 @@ class batteryStates:
 
 currentBatteryLevel = 0
 currentBatteryState = batteryStates.UNKNOWN
+memoryFree = 0
 
 def update():
-    global currentBatteryLevel
+    global currentBatteryLevel, memoryFree
 
     if IS_REAL_HARDWARE:
         currentBatteryLevel = sensor.cell_percent
 
+        memoryFree = gc.mem_free()
+
 if IS_REAL_HARDWARE:
     import board
+    import gc
     from adafruit_lc709203f import LC709203F, PackSize
 
     sensor = LC709203F(board.I2C())

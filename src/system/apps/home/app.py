@@ -7,6 +7,7 @@
 
 import vx.app as app
 import vx.gui as gui
+import vx.platform as platform
 
 class HomeProcess(app.Process):
     async def run(self):
@@ -89,6 +90,8 @@ class HomeProcess(app.Process):
 
         while True:
             screen.updateFocusPosition()
+
+            tileContainer.children[0].text = platform.memoryFree
 
             await app.defer()
 
