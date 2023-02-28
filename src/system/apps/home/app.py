@@ -63,9 +63,9 @@ class HomeProcess(app.Process):
 
         await app.defer()
 
-        for i in range(0, 12):
-            buttonWidth = appGrid.computedWidth // 4
+        buttonWidth = appGrid.computedWidth // 4
 
+        for i in range(0, 12):
             button = gui.Button(
                 buttonWidth * (i % 4),
                 64 * (i // 4),
@@ -74,9 +74,12 @@ class HomeProcess(app.Process):
                 64
             )
 
+            button.holdRender()
+
             button.borderThickness = 0
 
             appGrid.add(button)
+            button.releaseRender()
 
             await app.defer()
 

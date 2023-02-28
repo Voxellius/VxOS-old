@@ -42,8 +42,8 @@ def _updateBuildProfiler(element):
 
 class Element:
     def __init__(self, x, y):
-        self._x = 0
-        self._y = 0
+        self._x = x
+        self._y = y
         self._visible = True
         self._focusable = False
         self._focused = False
@@ -52,15 +52,11 @@ class Element:
         self.containedX = 0
         self.containedY = 0
 
-        self.x = x
-        self.y = y
-
         self.parent = None
         self._cachedBuild = None
+        self._holdingRender = False
 
         self.on(KeyPressEvent, self._checkFocusMove)
-
-        self.render()
 
     @property
     def x(self):
@@ -130,6 +126,9 @@ class Element:
             self.parent._triggerEvent(ChildFocusEvent(self))
 
     def render(self, renderChildren = True):
+        if self._holdingRender:
+            return
+
         if self.parent != None:
             self.containedX = self._x
             self.containedY = self._y
@@ -137,6 +136,14 @@ class Element:
         self._get()
 
         self._updateBuild()
+
+    def holdRender(self):
+        self._holdingRender = True
+
+    def releaseRender(self, renderChildren = True):
+        self._holdingRender = False
+
+        self.render(renderChildren)
 
     def on(self, eventType, callback):
         self._eventListeners.append(EventListener(eventType, callback))
@@ -222,6 +229,7 @@ class Element:
 class Text(Element):
     def __init__(self, x, y, text, font = fonts.SANS_REGULAR_16):
         self._cachedBuild = None
+        self._holdingRender = False
         self._boundingBoxValid = False
 
         self.parent = None
@@ -334,6 +342,7 @@ class Text(Element):
 class Image(Element):
     def __init__(self, x, y, path):
         self._cachedBuild = None
+        self._holdingRender = False
 
         self.parent = None
 
@@ -379,6 +388,7 @@ class Image(Element):
 class Container(Element):
     def __init__(self, x, y, width = None, height = None, xMargin = 0, yMargin = 0):
         self._cachedBuild = None
+        self._holdingRender = False
 
         self.parent = None
 
@@ -387,15 +397,13 @@ class Container(Element):
         self.containedX = 0
         self.containedY = 0
 
-        self._width = 0
-        self._height = 0
+        self._width = width
+        self._height = height
         self._visible = True
         self._focused = False
 
         super().__init__(x, y)
 
-        self.width = width
-        self.height = height
         self.xMargin = xMargin
         self.yMargin = yMargin
 
@@ -458,6 +466,9 @@ class Container(Element):
         return highestHeight
 
     def render(self, renderChildren = True):
+        if self._holdingRender:
+            return
+
         if self.parent != None:
             self.containedX = self.x + self.xMargin
             self.containedY = self.y + self.yMargin
@@ -486,21 +497,20 @@ class Container(Element):
 
         self.render()
 
-    def add(self, child):
+    def add(self, child, render = True):
         self._children.append(child)
         self._getChildGroup().append(child._get())
 
         child.parent = self
 
-        self.render()
+        if render:
+            child.render()
 
     def remove(self, child):
         self._children.remove(child)
         self._getChildGroup().remove(child._get())
 
         child.parent = None
-
-        self.render()
 
     def _getChildGroup(self):
         return self._get()
@@ -545,10 +555,10 @@ class ScrollableScreen(Screen):
 
         super().__init__()
 
-        self.add(self.contents)
-        self.add(self.horizontalScrollBar)
-        self.add(self.verticalScrollBar)
-        self.add(self.scrollBarCorner)
+        self.add(self.contents, False)
+        self.add(self.horizontalScrollBar, False)
+        self.add(self.verticalScrollBar, False)
+        self.add(self.scrollBarCorner, False)
 
         self.on(KeyPressEvent, self._checkManualScroll)
         self.on(ChildFocusEvent, self._checkAutoScroll)
@@ -603,6 +613,9 @@ class ScrollableScreen(Screen):
         elif self.scrollY > targetY:
             self.scrollY = targetY
 
+    def update(self):
+        self.render(False)
+
     def updateFocusPosition(self):
         if not self._shouldUpdateFocusPosition:
             return
@@ -616,6 +629,11 @@ class ScrollableScreen(Screen):
 
     def _updateBuild(self):
         super()._updateBuild()
+
+        self.contents.holdRender()
+        self.horizontalScrollBar.holdRender()
+        self.verticalScrollBar.holdRender()
+        self.scrollBarCorner.holdRender()
 
         if self.parent != None:
             self.horizontalScrollBar.y = self.computedHeight - 12
@@ -659,6 +677,11 @@ class ScrollableScreen(Screen):
                     self.scrollBarCorner.visible = True
             else:
                 self.verticalScrollBar.visible = False
+
+        self.contents.releaseRender(False)
+        self.horizontalScrollBar.releaseRender()
+        self.verticalScrollBar.releaseRender()
+        self.scrollBarCorner.releaseRender()
 
     def _checkManualScroll(self, event):
         if event.isAnyKeys(["up", "down", "left", "right"]) and event.hasKey("symbol"):
@@ -792,11 +815,11 @@ class Button(FocusableBox):
         self._text = text
 
         self._textElement = Text(4, 12, text)
-        self._textElement.foreground = vx.display.BLACK
+        self._textElement._foreground = vx.display.BLACK
 
         super().__init__(x, y, width, height, xMargin, yMargin)
 
-        self.add(self._textElement)
+        self.add(self._textElement, False)
     
     @property
     def text(self):
@@ -811,6 +834,9 @@ class Button(FocusableBox):
     def _updateBuild(self):
         super()._updateBuild()
 
+        self._textElement.render() # This is so we can find the computed width for centering the text
+        self._textElement.holdRender()
+
         if self.focused:
             self._textElement.foreground = vx.display.WHITE
         else:
@@ -820,6 +846,8 @@ class Button(FocusableBox):
             self._textElement.text = self.text
             self._textElement.x = int((self.computedWidth - self._textElement.computedWidth) / 2)
             self._textElement.y = int((self.computedHeight - self._textElement.computedHeight) / 2)
+
+        self._textElement.releaseRender()
 
 class ScrollBar(Box):
     def __init__(self, x, y, width = None, height = None, xMargin = 0, yMargin = 0):
@@ -835,7 +863,7 @@ class ScrollBar(Box):
         self.background = vx.display.WHITE
         self.borderThickness = 0
 
-        self.add(self._indicatorElement)
+        self.add(self._indicatorElement, False)
 
     @property
     def scrollPosition(self):
@@ -936,6 +964,7 @@ screenContainer = Container(0, 0)
 statusBar = None
 
 rootContainer.add(screenContainer)
+rootContainer.render()
 
 def _getFont(fontType):
     if fontType not in loadedFonts:
