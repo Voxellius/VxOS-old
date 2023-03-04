@@ -39,3 +39,4 @@ convertImage battery-7
 convertImage battery-8
 convertImage battery-9
 convertImage battery-10
+convertImage appicon

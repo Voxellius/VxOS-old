@@ -8,6 +8,43 @@
 import vx.app as app
 import vx.gui as gui
 import vx.platform as platform
+import vx.display as display
+
+class AppButton(gui.FocusableBox):
+    def __init__(self, x, y, appName, appIcon, width = 128, height = 96, xMargin = 0, yMargin = 0):
+        self.appName = appName
+        self.appIcon = appIcon
+
+        self.appNameText = gui.Text(0, 8, appName)
+        self.appNameText._foreground = display.BLACK
+
+        self.appIconImage = gui.Image(0, 8, appIcon)
+
+        super().__init__(x, y, width, height, xMargin, yMargin)
+
+        self.add(self.appNameText, False)
+        self.add(self.appIconImage, False)
+
+    def _updateBuild(self):
+        super()._updateBuild()
+
+        self.appNameText.render() # This is so we can find the computed width for centering the text
+        self.appNameText.holdRender()
+
+        if self.focused:
+            self.appNameText.foreground = display.WHITE
+        else:
+            self.appNameText.foreground = display.BLACK
+
+        if self.parent != None:
+            self.appNameText.text = self.appName
+
+            self.appNameText.x = (self.computedWidth - self.appNameText.computedWidth) // 2
+            self.appNameText.y = self.computedHeight - self.appNameText.computedHeight - 8
+
+            self.appIconImage.align(gui.alignments.MIDDLE, gui.alignments.START)
+
+        self.appNameText.releaseRender()
 
 class HomeProcess(app.Process):
     async def run(self):
@@ -50,8 +87,6 @@ class HomeProcess(app.Process):
 
             tileContainer.add(tile)
 
-            await app.defer()
-
             previousTile = tile
 
         await app.defer()
@@ -66,13 +101,13 @@ class HomeProcess(app.Process):
 
         buttonWidth = appGrid.computedWidth // 4
 
-        for i in range(0, 12):
-            button = gui.Button(
+        for i in range(0, 8):
+            button = AppButton(
                 buttonWidth * (i % 4),
-                64 * (i // 4),
+                96 * (i // 4),
                 "App {}".format(i),
-                buttonWidth,
-                64
+                "assets/appicon.bmp",
+                buttonWidth
             )
 
             button.holdRender()
@@ -82,7 +117,7 @@ class HomeProcess(app.Process):
             appGrid.add(button)
             button.releaseRender()
 
-            await app.defer()
+        await app.defer()
 
         appGrid.height = appGrid.contentsHeight
 

@@ -150,13 +150,13 @@ class Element:
 
     def align(self, xAlignment = alignments.MIDDLE, yAlignment = alignments.MIDDLE):
         if xAlignment == alignments.MIDDLE:
-            self.x = int((self.parent.computedWidth - self.computedWidth) / 2)
+            self.x = (self.parent.computedWidth - self.computedWidth) // 2
 
         if xAlignment == alignments.END:
             self.x = self.parent.computedWidth - self.computedWidth - self.computedX
 
         if yAlignment == alignments.MIDDLE:
-            self.y = int((self.parent.computedHeight - self.computedHeight) / 2)
+            self.y = (self.parent.computedHeight - self.computedHeight) // 2
 
         if yAlignment == alignments.END:
             self.y = self.parent.computedHeight - self.computedHeight - self.computedY
@@ -820,7 +820,7 @@ class Button(FocusableBox):
         super().__init__(x, y, width, height, xMargin, yMargin)
 
         self.add(self._textElement, False)
-    
+
     @property
     def text(self):
         return self._text
@@ -844,8 +844,8 @@ class Button(FocusableBox):
 
         if self.parent != None:
             self._textElement.text = self.text
-            self._textElement.x = int((self.computedWidth - self._textElement.computedWidth) / 2)
-            self._textElement.y = int((self.computedHeight - self._textElement.computedHeight) / 2)
+
+            self._textElement.align(alignments.MIDDLE, alignments.MIDDLE)
 
         self._textElement.releaseRender()
 
