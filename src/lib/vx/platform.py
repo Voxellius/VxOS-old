@@ -12,7 +12,7 @@ _platformDetector = adafruit_platformdetect.Detector()
 IS_REAL_HARDWARE = not _platformDetector.board.generic_linux
 
 _MIN_BATTERY_VOLTAGE = 3
-_MAX_BATTERY_VOLTAGE = 4
+_MAX_BATTERY_VOLTAGE = 3.9
 
 class batteryStates:
     UNKNOWN = 0
