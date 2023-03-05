@@ -38,7 +38,7 @@ class sides:
     AFTER = 3
 
 def _updateBuildProfiler(element):
-    pass # print(element)
+    print(element)
 
 class Element:
     def __init__(self, x, y):
@@ -357,13 +357,15 @@ class Image(Element):
 
     @property
     def computedWidth(self):
-        self.render()
+        if self._bitmap == None:
+            self.render()
 
         return self._bitmap.width
 
     @property
     def computedHeight(self):
-        self.render()
+        if self._bitmap == None:
+            self.render()
 
         return self._bitmap.height
 
