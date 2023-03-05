@@ -11,6 +11,9 @@ _platformDetector = adafruit_platformdetect.Detector()
 
 IS_REAL_HARDWARE = not _platformDetector.board.generic_linux
 
+_MIN_BATTERY_VOLTAGE = 3
+_MAX_BATTERY_VOLTAGE = 4
+
 class batteryStates:
     UNKNOWN = 0
     DISCHARGING = 1
@@ -24,14 +27,18 @@ def update():
     global currentBatteryLevel, memoryFree
 
     if IS_REAL_HARDWARE:
-        currentBatteryLevel = sensor.cell_percent
+        _batteryVoltage = batteryVoltageSensor.value / 5371
+        currentBatteryLevel = min(max((_batteryVoltage - _MIN_BATTERY_VOLTAGE) / (_MAX_BATTERY_VOLTAGE - _MIN_BATTERY_VOLTAGE), 0), 1) * 100
 
         memoryFree = gc.mem_free()
 
 if IS_REAL_HARDWARE:
     import board
     import gc
-    from adafruit_lc709203f import LC709203F, PackSize
+    import analogio
+    import digitalio
 
-    sensor = LC709203F(board.I2C())
-    sensor.pack_size = PackSize.MAH3000
+    batteryVoltageSensor = analogio.AnalogIn(board.BATTERY)
+
+    batteryChargingSensor = digitalio.DigitalInOut(board.VBUS_SENSE)
+    batteryChargingSensor.direction = digitalio.Direction.INPUT

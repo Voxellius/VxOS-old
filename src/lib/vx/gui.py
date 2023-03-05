@@ -38,7 +38,7 @@ class sides:
     AFTER = 3
 
 def _updateBuildProfiler(element):
-    print(element)
+    pass # print(element)
 
 class Element:
     def __init__(self, x, y):

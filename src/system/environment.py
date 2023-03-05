@@ -50,10 +50,11 @@ async def init(initAppPath):
 
             raise NotImplementedError("No deferral error handling implemented yet")
 
+        if i % 10 == 0:
+            vx.platform.update()
+
         if i % 100 == 0:
             gc.collect()
-
-            vx.platform.update()
 
         i += 1
 
