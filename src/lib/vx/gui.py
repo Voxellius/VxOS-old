@@ -13,6 +13,8 @@ import vx.platform
 import vx.display
 import vx.keyboard
 
+import time
+
 if vx.platform.IS_REAL_HARDWARE:
     from adafruit_display_text.bitmap_label import Label
 else:
@@ -569,8 +571,7 @@ class ScrollableScreen(Screen):
     def scrollX(self):
         return -self.contents.x
 
-    @scrollX.setter
-    def scrollX(self, value):
+    def _setScrollX(self, value):
         if value < 0:
             value = 0
 
@@ -581,14 +582,7 @@ class ScrollableScreen(Screen):
 
         self.contents.x = -value
 
-        self._updateBuild()
-
-    @property
-    def scrollY(self):
-        return -self.contents.y
-
-    @scrollY.setter
-    def scrollY(self, value):
+    def _setScrollY(self, value):
         if value < 0:
             value = 0
 
@@ -599,6 +593,18 @@ class ScrollableScreen(Screen):
 
         self.contents.y = -value
 
+    @scrollX.setter
+    def scrollX(self, value):
+        self._setScrollX(value)
+        self._updateBuild()
+
+    @property
+    def scrollY(self):
+        return -self.contents.y
+
+    @scrollY.setter
+    def scrollY(self, value):
+        self._setScrollY(value)
         self._updateBuild()
 
     def scrollTo(self, element):
@@ -606,14 +612,19 @@ class ScrollableScreen(Screen):
         targetY = element.computedY - element.yMargin - self.contents.computedY
 
         if self.scrollX + self.contents.computedWidth < targetX + element.computedWidth:
-            self.scrollX = targetX - self.contents.computedWidth + element.computedWidth
+            self._setScrollX(targetX - self.contents.computedWidth + element.computedWidth)
         elif self.scrollX > targetX:
-            self.scrollX = targetX
+            self._setScrollX(targetX)
 
         if self.scrollY + self.contents.computedHeight < targetY + element.computedHeight:
-            self.scrollY = targetY - self.contents.computedHeight + element.computedHeight + self.horizontalScrollBar.computedHeight
+            self._setScrollY(targetY - self.contents.computedHeight + element.computedHeight + self.horizontalScrollBar.computedHeight)
         elif self.scrollY > targetY:
-            self.scrollY = targetY
+            self._setScrollY(targetY)
+
+        vx.display.display.refresh()
+        vx.display.display.refresh()
+
+        self._updateBuild()
 
     def update(self):
         self.render(False)
@@ -625,6 +636,9 @@ class ScrollableScreen(Screen):
         focusedElements = getElements(lambda element: element.focused)
 
         if len(focusedElements) > 0:
+            vx.display.display.refresh()
+            vx.display.display.refresh()
+
             self.scrollTo(focusedElements[0])
 
         self._shouldUpdateFocusPosition = False

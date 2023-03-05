@@ -29,7 +29,7 @@ if vx.platform.IS_REAL_HARDWARE:
     bus = busio.SPI(board.SCK, MOSI = board.MOSI)
 
     framebuffer = sharpdisplay.SharpMemoryFramebuffer(bus, board.D13, WIDTH, HEIGHT)
-    display = framebufferio.FramebufferDisplay(framebuffer) 
+    display = framebufferio.FramebufferDisplay(framebuffer)
 else:
     import blinka_displayio_pygamedisplay
     import pygame
