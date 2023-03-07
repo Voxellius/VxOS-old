@@ -2,6 +2,12 @@
 The small and efficient operating system that powers Voxellius's devices.
 
 ## Simulator
+In order to use the simulator, you must install the required Python modules. To do this, run:
+
+```bash
+pip3 install -r requirements.txt
+```
+
 To run the VxOS simulator, run:
 
 ```bash
