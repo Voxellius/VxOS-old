@@ -13,8 +13,6 @@ import vx.platform
 import vx.display
 import vx.keyboard
 
-import time
-
 if vx.platform.IS_REAL_HARDWARE:
     from adafruit_display_text.bitmap_label import Label
 else:

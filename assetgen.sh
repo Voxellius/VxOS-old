@@ -28,6 +28,7 @@ convertFont titilliumweb-regular 16
 convertFont titilliumweb-numerals 64
 
 convertImageSmall boot
+
 convertImage battery-0
 convertImage battery-1
 convertImage battery-2
@@ -39,4 +40,5 @@ convertImage battery-7
 convertImage battery-8
 convertImage battery-9
 convertImage battery-10
+
 convertImage appicon
