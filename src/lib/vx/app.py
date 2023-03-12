@@ -75,8 +75,13 @@ class ScreenStackProcess(Process):
             if shouldLoop:
                 await self.screenStack[-1]._loop()
 
+        vx.gui.goHome()
+
 async def defer():
     await asyncio.sleep(0)
+
+def startAsync(functionCall):
+    asyncio.create_task(functionCall)
 
 def startProcess(processClass, arguments = {}):
     process = processClass(arguments)

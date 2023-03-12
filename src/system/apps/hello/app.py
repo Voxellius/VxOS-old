@@ -25,6 +25,8 @@ class HelloScreen(gui.ScrollableScreen):
         def buttonKeyEvent(event):
             button.text = event.key.name
 
+            button.render()
+
         button.on(gui.KeyPressEvent, buttonKeyEvent)
 
         await vx.app.defer()

@@ -12,6 +12,7 @@ from adafruit_display_shapes.rect import Rect
 import vx.platform
 import vx.display
 import vx.keyboard
+import vx.app
 
 if vx.platform.IS_REAL_HARDWARE:
     from adafruit_display_text.bitmap_label import Label
@@ -554,6 +555,8 @@ class Screen(Container):
         self.process = None
         self.isRegistered = False
 
+        self.on(KeyPressEvent, self._checkScreenShortcuts)
+
     async def start(self):
         pass
 
@@ -565,6 +568,19 @@ class Screen(Container):
 
     async def _loop(self):
         await self.loop()
+
+    async def open(self, screen):
+        await self.process.openScreen(screen)
+
+    async def close(self):
+        await self.process.closeScreen(self)
+
+    def _checkScreenShortcuts(self, event):
+        if event.isKey("home"):
+            if event.hasKey("ctrl"):
+                vx.app.startAsync(self.close())
+            else:
+                goHome()
 
 class ScrollableScreen(Screen):
     def __init__(self):
@@ -1007,6 +1023,7 @@ class EventListener:
 rootContainer = Container(0, 0, vx.display.WIDTH, vx.display.HEIGHT)
 screenContainer = Container(0, 0)
 statusBar = None
+homeScreen = None
 
 rootContainer.add(screenContainer)
 rootContainer.render()
@@ -1097,6 +1114,17 @@ def switchToScreen(screen):
     screen.height = vx.display.HEIGHT - screen.y
 
     screen.visible = True
+
+    focusables = getElements(lambda element: element.focusable, root = screen)
+
+    if len(focusables) > 0:
+        focusables[0].focus() # TODO: Implement some sort of focus stack
+    else:
+        screen.focus()
+
+def goHome():
+    if homeScreen != None:
+        switchToScreen(homeScreen)
 
 def updateEvents():
     vx.keyboard.poll()

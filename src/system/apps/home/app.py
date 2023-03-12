@@ -48,6 +48,8 @@ class AppButton(gui.FocusableBox):
 
 class HomeScreen(gui.ScrollableScreen):
     async def start(self):
+        gui.homeScreen = self
+
         self.name = "Home"
 
         tileContainer = gui.Container(0, 0, None, 96)
