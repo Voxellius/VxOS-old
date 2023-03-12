@@ -46,23 +46,15 @@ class AppButton(gui.FocusableBox):
 
         self.appNameText.releaseRender()
 
-class HomeProcess(app.Process):
-    async def run(self):
-        app.startApp("system/apps/statusbar")
-
-        await app.defer()
-
-        screen = gui.ScrollableScreen()
-        screen.name = "Home"
-
-        gui.screenContainer.add(screen)
-        gui.switchToScreen(screen)
-
-        await app.defer()
+class HomeScreen(gui.ScrollableScreen):
+    async def start(self):
+        self.name = "Home"
 
         tileContainer = gui.Container(0, 0, None, 96)
 
-        screen.contents.add(tileContainer)
+        self.tileContainer = tileContainer # TODO: Remove (temporary)
+
+        self.contents.add(tileContainer)
 
         await app.defer()
 
@@ -91,9 +83,9 @@ class HomeProcess(app.Process):
 
         await app.defer()
 
-        appGrid = gui.Container(0, 0, screen.contents.computedWidth, 10, 8, 0)
+        appGrid = gui.Container(0, 0, self.contents.computedWidth, 10, 8, 0)
 
-        screen.contents.add(appGrid)
+        self.contents.add(appGrid)
 
         appGrid.place(tileContainer, gui.sides.BELOW)
 
@@ -126,13 +118,13 @@ class HomeProcess(app.Process):
 
         appGrid.height = appGrid.contentsHeight
 
-        screen.render()
+    async def loop(self):
+        self.tileContainer.children[0].text = platform.memoryFree
 
-        while True:
-            screen.updateFocusPosition()
+class HomeProcess(app.ScreenStackProcess):
+    startingScreen = HomeScreen
 
-            tileContainer.children[0].text = platform.memoryFree
-
-            await app.defer()
+    async def start(self):
+        app.startApp("system/apps/statusbar")
 
 process = HomeProcess

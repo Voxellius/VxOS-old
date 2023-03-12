@@ -551,6 +551,20 @@ class Screen(Container):
         self.visible = False
         self.name = ""
         self.showStatusBar = True
+        self.process = None
+        self.isRegistered = False
+
+    async def start(self):
+        pass
+
+    async def _start(self):
+        await self.start()
+
+    async def loop(self):
+        pass
+
+    async def _loop(self):
+        await self.loop()
 
 class ScrollableScreen(Screen):
     def __init__(self):
@@ -648,6 +662,11 @@ class ScrollableScreen(Screen):
             self.scrollTo(focusedElements[0])
 
         self._shouldUpdateFocusPosition = False
+
+    async def _loop(self):
+        self.updateFocusPosition()
+
+        await super()._loop()
 
     def _updateBuild(self):
         super()._updateBuild()
