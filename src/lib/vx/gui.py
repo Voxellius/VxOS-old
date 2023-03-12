@@ -58,6 +58,7 @@ class Element:
         self._cachedBuild = None
         self._holdingRender = False
 
+        self.on(KeyPressEvent, self._checkSelect)
         self.on(KeyPressEvent, self._checkFocusMove)
 
     @property
@@ -126,6 +127,9 @@ class Element:
 
         if self.parent != None:
             self.parent._triggerEvent(ChildFocusEvent(self))
+
+    def select(self):
+        self._triggerEvent(SelectEvent(self))
 
     def render(self, renderChildren = True):
         if self._holdingRender:
@@ -211,6 +215,10 @@ class Element:
 
         if event.shouldPropagate and self.parent != None:
             self.parent._triggerEvent(event)
+
+    def _checkSelect(self, event):
+        if event.isKey("select"):
+            self.select()
 
     def _checkFocusMove(self, event):
         if event.isAnyKeys(["up", "down", "left", "right"]) and not event.hasKey("symbol") and self.focused:
@@ -935,6 +943,12 @@ class Event:
     def cancelPropagation(self):
         self.shouldPropagate = False
 
+class NonPropagatingEvent(Event):
+    def __init__(self, target):
+        super().__init__(target)
+
+        self.shouldPropagate = False
+
 class KeyboardEvent(Event):
     def __init__(self, target, key = None, allKeys = None):
         self.key = key
@@ -962,13 +976,11 @@ class KeyboardEvent(Event):
 class KeyPressEvent(KeyboardEvent): pass
 class KeyReleaseEvent(KeyboardEvent): pass
 
-class FocusEvent(Event):
-    def __init__(self, target):
-        super().__init__(target)
-
-        self.shouldPropagate = False
+class FocusEvent(NonPropagatingEvent): pass
 
 class ChildFocusEvent(Event): pass
+
+class SelectEvent(NonPropagatingEvent): pass
 
 class EventListener:
     def __init__(self, eventType, callback):

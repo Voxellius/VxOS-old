@@ -101,6 +101,9 @@ class HomeProcess(app.Process):
 
         buttonWidth = appGrid.computedWidth // 4
 
+        def onAppButtonSelect(event):
+            app.startApp("system/apps/hello")
+
         for i in range(0, 8):
             button = AppButton(
                 buttonWidth * (i % 4),
@@ -109,6 +112,8 @@ class HomeProcess(app.Process):
                 "assets/appicon.bmp",
                 buttonWidth
             )
+
+            button.on(gui.SelectEvent, onAppButtonSelect)
 
             button.holdRender()
 

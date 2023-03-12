@@ -71,6 +71,8 @@ class HelloProcess(vx.app.Process):
         screen.render()
 
         while True:
+            screen.updateFocusPosition()
+
             keys = vx.keyboard.heldKeys
 
             clock.text = vx.time.getTimeString(vx.time.TimeFormat(vx.time.timeFormatModes.TIME | vx.time.timeFormatModes.TIME_SECONDS))
